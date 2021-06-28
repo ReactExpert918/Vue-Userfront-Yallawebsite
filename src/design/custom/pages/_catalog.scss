@@ -1,0 +1,22 @@
+//
+// timeline.scss
+//
+
+/************** Horizontal timeline **************/
+.cursor-pointer{
+    cursor: pointer;
+}
+.category-tabs {
+    .move {
+        margin-right: 10px;
+    }
+    .actions-right {
+        float: right;
+    }
+    div[role="tabpanel"] {
+        margin-left: 40px;
+    }
+    .cursor-ponter{
+        cursor: pointer;
+    }
+}
