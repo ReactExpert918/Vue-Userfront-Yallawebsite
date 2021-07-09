@@ -1,21 +1,21 @@
 import { userService } from '../../helpers/authservice/user.service';
 import router from '../../router/index'
 
-const user = JSON.parse(localStorage.getItem('user'));
-export const state = user
-    ? { status: { loggeduser: true }, user }
-    : { status: {}, user: null };
+const customer = JSON.parse(localStorage.getItem('customer'));
+export const state = customer
+    ? { status: { loggeduser: true }, customer }
+    : { status: {}, customer: null };
 
 export const actions = {
-    // Logs in the user.
+    // Logs in the customer.
     // eslint-disable-next-line no-unused-vars
     login({ dispatch, commit }, { email, password }) {
         commit('loginRequest', { email });
 
         userService.login(email, password)
             .then(
-                user => {
-                    commit('loginSuccess', user);
+                customer => {
+                    commit('loginSuccess', customer);
                     router.push('/');
                 },
                 error => {
@@ -24,18 +24,18 @@ export const actions = {
                 }
             );
     },
-    // Logout the user
+    // Logout the customer
     logout({ commit }) {
         userService.logout();
         commit('logout');
     },
-    // register the user
-    registeruser({ dispatch, commit }, user) {
-        commit('registerRequest', user);
-        userService.register(user)
+    // register the customer
+    registeruser({ dispatch, commit }, customer) {
+        commit('registerRequest', customer);
+        userService.register(customer)
             .then(
-                user => {
-                    commit('registerSuccess', user);
+                customer => {
+                    commit('registerSuccess', customer);
                     dispatch('notification/success', 'Registration successful', { root: true });
 
                     router.push('/login');
@@ -50,21 +50,21 @@ export const actions = {
 };
 
 export const mutations = {
-    loginRequest(state, user) {
+    loginRequest(state, customer) {
         state.status = { loggingIn: true };
-        state.user = user;
+        state.customer = customer;
     },
-    loginSuccess(state, user) {
+    loginSuccess(state, customer) {
         state.status = { loggeduser: true };
-        state.user = user;
+        state.customer = customer;
     },
     loginFailure(state) {
         state.status = {};
-        state.user = null;
+        state.customer = null;
     },
     logout(state) {
         state.status = {};
-        state.user = null;
+        state.customer = null;
     },
     registerRequest(state) {
         state.status = { registering: true };
