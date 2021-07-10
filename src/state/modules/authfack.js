@@ -24,6 +24,21 @@ export const actions = {
                 }
             );
     },
+    loginWithThirdParty({ dispatch, commit }, { payload }) {
+        // commit('loginRequest', { email });
+
+        userService.loginWithThirdParty(payload)
+            .then(
+                customer => {
+                    commit('loginSuccess', customer);
+                    router.push('/');
+                },
+                error => {
+                    commit('loginFailure', error);
+                    dispatch('notification/error', error, { root: true });
+                }
+            );
+    },
     // Logout the customer
     logout({ commit }) {
         userService.logout();

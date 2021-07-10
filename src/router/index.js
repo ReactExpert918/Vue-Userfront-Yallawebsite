@@ -64,6 +64,7 @@ router.beforeEach((routeTo, routeFrom, next) => {
     const authpage = !publicPages.includes(routeTo.path);
     const loggeduser = localStorage.getItem('customer');
 
+
     if (authpage && !loggeduser) {
       return next('/login');
     }
