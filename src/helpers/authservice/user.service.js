@@ -83,13 +83,27 @@ function logout() {
     }
 }
 
-function register(user) {
-    const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(user)
-    };
-    return fetch(`/users/register`, requestOptions).then(handleResponse);
+
+function register(customer) {
+
+    const payload = {
+        first_name: customer.firstname,
+        last_name: customer.lastname,
+        email: customer.email,
+        password: customer.password,
+        password_confirmation: customer.passwordConfirm,
+    }
+    const headers = {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }
+
+    return axios
+        .post(`${backendURL}/api/auth/signup`, payload, headers)
+        .then(response => {
+            alert(`Customer(${response.data.data.id}) signup successful`);
+        }).catch(handleAxiosError);
 }
 
 export function handleAxiosError(error) {

@@ -1,5 +1,4 @@
 <script>
-import axios from "axios";
 
 import {
   authMethods,
@@ -31,9 +30,11 @@ export default {
   data() {
     return {
       user: {
-        username: "",
+        firstname: "",
+        lastname: "",
         email: "",
         password: "",
+        passwordConfirm: "",
       },
       submitted: false,
       regError: null,
@@ -44,9 +45,6 @@ export default {
   },
   validations: {
     user: {
-      username: {
-        required,
-      },
       email: {
         required,
         email,
@@ -75,51 +73,11 @@ export default {
 
       if (this.$v.$invalid) {
         return;
-      } else {
-        if (process.env.VUE_APP_DEFAULT_AUTH === "firebase") {
-          this.tryingToRegister = true;
-          // Reset the regError if it existed.
-          this.regError = null;
-          return (
-            this.register({
-              email: this.user.email,
-              password: this.user.password,
-            })
-              // eslint-disable-next-line no-unused-vars
-              .then((token) => {
-                this.tryingToRegister = false;
-                this.isRegisterError = false;
-                this.registerSuccess = true;
-                if (this.registerSuccess) {
-                  this.$router.push(
-                    this.$route.query.redirectFrom || {
-                      name: "default",
-                    }
-                  );
-                }
-              })
-              .catch((error) => {
-                this.tryingToRegister = false;
-                this.regError = error ? error : "";
-                this.isRegisterError = true;
-              })
-          );
-        } else if (process.env.VUE_APP_DEFAULT_AUTH === "fakebackend") {
-          const { email, username, password } = this.user;
-          if (email && username && password) {
-            this.registeruser(this.user);
-          }
-        } else if (process.env.VUE_APP_DEFAULT_AUTH === "authapi") {
-          axios
-            .post("http://127.0.0.1:8000/api/register", {
-              username: this.user.username,
-              email: this.user.email,
-              password: this.user.password,
-            })
-            .then((res) => {
-              return res;
-            });
-        }
+      } 
+
+      const {user} = this;
+      if (user){
+        this.registeruser(user);
       }
     },
   },
@@ -189,24 +147,45 @@ export default {
 
             <b-form class="p-2" @submit.prevent="tryToRegisterIn">
               <b-form-group
-                id="email-group"
-                label="Username"
-                label-for="username"
+                id="firstname-group"
+                label="First Name"
+                label-for="firstname"
               >
                 <b-form-input
-                  id="username"
-                  v-model="user.username"
+                  id="firstname"
+                  v-model="user.firstname"
                   type="text"
-                  placeholder="Enter username"
+                  placeholder="Enter first name"
                   :class="{
-                    'is-invalid': submitted && $v.user.username.$error,
+                    'is-invalid': submitted && $v.user.firstname.$error,
                   }"
                 ></b-form-input>
                 <div
-                  v-if="submitted && !$v.user.username.required"
+                  v-if="submitted && !$v.user.firstname.required"
                   class="invalid-feedback"
                 >
-                  Username is required.
+                  First Name is required.
+                </div>
+              </b-form-group>
+              <b-form-group
+                id="lastname-group"
+                label="Last Name"
+                label-for="lastname"
+              >
+                <b-form-input
+                  id="lastname"
+                  v-model="user.lastname"
+                  type="text"
+                  placeholder="Enter last name"
+                  :class="{
+                    'is-invalid': submitted && $v.user.lastname.$error,
+                  }"
+                ></b-form-input>
+                <div
+                  v-if="submitted && !$v.user.lastname.required"
+                  class="invalid-feedback"
+                >
+                  Last Name is required.
                 </div>
               </b-form-group>
 
@@ -248,6 +227,28 @@ export default {
                   class="invalid-feedback"
                 >
                   Password is required.
+                </div>
+              </b-form-group>
+
+              <b-form-group
+                id="passwordconfirm-group"
+                label="Password Confirmation"
+                label-for="passwordonfirm"
+              >
+                <b-form-input
+                  id="passwordconfirm"
+                  v-model="user.passwordConfirm"
+                  type="password"
+                  placeholder="Enter password"
+                  :class="{
+                    'is-invalid': submitted && $v.user.passwordConfirm.$error,
+                  }"
+                ></b-form-input>
+                <div
+                  v-if="submitted && !$v.user.passwordConfirm.required"
+                  class="invalid-feedback"
+                >
+                  Password Confirmation is required.
                 </div>
               </b-form-group>
 
