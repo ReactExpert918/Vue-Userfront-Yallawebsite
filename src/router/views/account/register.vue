@@ -1,3 +1,5 @@
+<script src="https://apis.google.com/js/platform.js"></script>
+
 <script>
 
 import {
@@ -41,6 +43,7 @@ export default {
       tryingToRegister: false,
       isRegisterError: false,
       registerSuccess: false,
+      googleClientID: process.env.VUE_APP_GOOGLE_CLIENT_ID,
     };
   },
   validations: {
@@ -80,7 +83,31 @@ export default {
         this.registeruser(user);
       }
     },
+    gapiLoader(){
+      // Retrieve the singleton for the GoogleAuth library and set up the client.
+      var auth2 = gapi.auth2.init({
+        client_id: this.googleClientID,
+        // cookiepolicy: 'single_host_origin',
+        // Request scopes in addition to 'profile' and 'email'
+        //scope: 'additional_scope'
+      });
+      auth2.attachClickHandler(document.getElementById('gs-button'), {} , this.onGoogleSignIn)
+    },
+    onGoogleSignIn(googleUser){
+      
+      const payload = {
+        issuer: "google",
+        data: {
+          token:  googleUser.getAuthResponse().id_token,
+        },
+      }
+      this.loginWithThirdParty({payload});
+
+    },
   },
+  mounted(){
+    gapi.load('auth2', this.gapiLoader);
+  }
 };
 </script>
 
@@ -283,7 +310,7 @@ export default {
                       href="javascript: void(0);"
                       class="social-list-item bg-danger text-white border-danger"
                     >
-                      <i class="mdi mdi-google"></i>
+                      <i class="mdi mdi-google" id="gs-button"></i>
                     </a>
                   </li>
                 </ul>
