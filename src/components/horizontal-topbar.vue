@@ -1,8 +1,11 @@
 <script>
 import i18n from "../i18n";
+import axios from 'axios';
 
 import simplebar from "simplebar-vue";
 import { layoutComputed } from "@/state/helpers";
+import {authHeader} from "@/helpers/authservice/auth-header";
+import {handleAxiosError} from "@/helpers/authservice/user.service";
 
 /**
  * Horizontal-topbar component
@@ -26,6 +29,7 @@ export default {
   },
   data() {
     return {
+      backendURL: process.env.VUE_APP_BACKEND_URL,
       languages: [
         {
           flag: require("@/assets/images/flags/us.jpg"),
@@ -57,12 +61,14 @@ export default {
       text: null,
       flag: null,
       value: null,
+      cart_summary: [],
     };
   },
   mounted() {
     this.value = this.languages.find((x) => x.language === i18n.locale);
     this.text = this.value.title;
     this.flag = this.value.flag;
+    this.fetchCartSummary();
   },
   methods: {
     toggleRightSidebar() {
@@ -98,6 +104,48 @@ export default {
       this.text = country;
       this.flag = flag;
       i18n.locale = locale;
+    },
+    fetchCartSummary(){
+      axios
+      .get(`${this.backendURL}/api/v1/carts/summary` , authHeader())
+      .then(response => (this.cart_summary = response.data.data))
+      .catch(handleAxiosError);
+    },
+    editCart(cs, sign){
+      var payload = {
+        cart_item_id: cs.id,
+        quantity: cs.quantity,
+      };
+      axios
+      .put(`${this.backendURL}/api/v1/carts`, payload , authHeader())
+      .then(response => (this.cart_summary = response.data.data))
+      .catch((err)=>{
+        handleAxiosError(err);
+        // reverting the cart item quantity
+        if (sign == '+'){
+          cs.quantity--;
+        }
+        if (sign == "-"){
+          cs.quantity++;
+        }
+      });
+    },
+    updateQuantity(cs , sign){
+      if (sign == "+"){
+        cs.quantity++;
+      }
+      if (sign == "-"){
+        cs.quantity--;
+        if (cs.quantity < 0){
+          cs.quantity = 0;
+        }
+      }
+      this.editCart(cs, sign);
+
+    },
+    removeCartItem(cs){
+      cs.quantity = 0;
+      this.editCart(cs , '');
     },
   },
   watch: {
@@ -406,7 +454,7 @@ export default {
         <b-dropdown right menu-class="dropdown-menu-lg p-0" toggle-class="header-item noti-icon" variant="black">
           <template v-slot:button-content>
             <i class="bx bx-basket"></i>
-            <span class="badge badge-danger badge-pill">{{ $t("navbar.dropdown.notification.badge") }}</span>
+            <span class="badge badge-danger badge-pill">{{ cart_summary.length }}</span>
           </template>
 
           <div class="p-3">
@@ -419,7 +467,7 @@ export default {
               </div>
             </div>
           </div>
-          <simplebar style="max-height: 230px">
+          <simplebar style="max-height: 230px" v-for="cs in cart_summary" :key="cs.id">
             <a href="javascript: void(0);" class="text-reset notification-item">
               <div class="media">
                 <div class="avatar-xs mr-3">
@@ -429,14 +477,16 @@ export default {
                 </div>
                 <div class="media-body">
                   <div class="row">
-                    <h6 class="mt-0 mb-1 col-9">Product 1</h6>
-                    <p class="mb-1 col-2">£20.00</p>
+                    <h6 class="mt-0 mb-1 col-9">{{cs.product.name}}</h6>
+                    <p class="mb-1 col-2">£{{cs.sub_total}}</p>
                   </div>
                   <div class="row">
                     <h6 class="font-size-12 text-muted col-2 pt-2">Qty:</h6>
-                    <p class="mb-1 col-4"><b-form-input id="input-name" placeholder="" value="1" class="text-center"></b-form-input></p>
-                    <div class="mb-1 col-6 text-right">
-                      <i class="bx bx-trash-alt"></i>
+                    <button class="mb-1" v-on:click="updateQuantity(cs,'-')">-</button>
+                    <p class="mb-1 col-4"><b-form-input id="input-name" readonly v-bind:value="cs.quantity" class="text-center"></b-form-input></p>
+                    <button class="mb-1" v-on:click="updateQuantity(cs,'+')">+</button>
+                    <div class="mb-1 col-12 text-right">
+                      <i class="bx bx-trash-alt" v-on:click="removeCartItem(cs)"></i>
                     </div>
                   </div>
                 </div>
