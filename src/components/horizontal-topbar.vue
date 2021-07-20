@@ -5,6 +5,7 @@ import axios from 'axios';
 import simplebar from "simplebar-vue";
 import { layoutComputed } from "@/state/helpers";
 import {authHeader} from "@/helpers/authservice/auth-header";
+import {getTimeDiffInSeconds} from "@/helpers/common";
 import {handleAxiosError} from "@/helpers/authservice/user.service";
 
 /**
@@ -62,6 +63,12 @@ export default {
       flag: null,
       value: null,
       cart_summary: [],
+      throttle:{
+        timer: undefined,
+        duration: 2, //seconds
+        last_invoke_time: undefined,
+        invoke_after: 2000, //miliseconds
+      },
     };
   },
   mounted() {
@@ -111,7 +118,7 @@ export default {
       .then(response => (this.cart_summary = response.data.data))
       .catch(handleAxiosError);
     },
-    editCart(cs, sign){
+    editCart(cs){
       var payload = {
         cart_item_id: cs.id,
         quantity: cs.quantity,
@@ -121,13 +128,7 @@ export default {
       .then(response => (this.cart_summary = response.data.data))
       .catch((err)=>{
         handleAxiosError(err);
-        // reverting the cart item quantity
-        if (sign == '+'){
-          cs.quantity--;
-        }
-        if (sign == "-"){
-          cs.quantity++;
-        }
+        this.fetchCartSummary();
       });
     },
     updateQuantity(cs , sign){
@@ -140,12 +141,24 @@ export default {
           cs.quantity = 0;
         }
       }
-      this.editCart(cs, sign);
 
+      // throttling so that rapid press of the buttons doesn't invoke rapid API calls
+      var t = new Date();
+      var last_t = this.throttle.last_invoke_time;
+      if (last_t){
+        if (getTimeDiffInSeconds(last_t, t) < this.throttle.duration){ // if the time difference between two button press if less than the allowed duration
+          if (this.throttle.timer){
+            clearTimeout(this.throttle.timer); // then clear the wait time to reset it
+          }
+        }
+      }
+      
+      this.throttle.timer = setTimeout(()=>(this.editCart(cs)),  this.throttle.invoke_after); // setting(resetting if cleared) the invoke time after rapid hits
+      this.throttle.last_invoke_time = new Date(); // storing the last invoked time to keep track of rapid hits
     },
     removeCartItem(cs){
       cs.quantity = 0;
-      this.editCart(cs , '');
+      this.editCart(cs);
     },
   },
   watch: {
@@ -483,7 +496,7 @@ export default {
                   <div class="row">
                     <h6 class="font-size-12 text-muted col-2 pt-2">Qty:</h6>
                     <button class="mb-1" v-on:click="updateQuantity(cs,'-')">-</button>
-                    <p class="mb-1 col-4"><b-form-input id="input-name" readonly v-bind:value="cs.quantity" class="text-center"></b-form-input></p>
+                    <p class="mb-1 col-4"><b-form-input  readonly v-bind:value="cs.quantity" class="text-center"></b-form-input></p>
                     <button class="mb-1" v-on:click="updateQuantity(cs,'+')">+</button>
                     <div class="mb-1 col-12 text-right">
                       <i class="bx bx-trash-alt" v-on:click="removeCartItem(cs)"></i>

@@ -54,3 +54,9 @@ export function parseAndVerifyJWTToken(token) {
     }
 
 }
+
+
+export function getTimeDiffInSeconds(t1, t2) {
+    var dt = t2.getTime() - t1.getTime();
+    return dt / (1000 * 3600 * 24) * 86400;
+}
