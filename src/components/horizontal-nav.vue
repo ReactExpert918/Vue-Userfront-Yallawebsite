@@ -1,14 +1,25 @@
 <script>
 import { layoutMethods } from "@/state/helpers";
+import axios from 'axios';
+import {handleAxiosError} from "@/helpers/authservice/user.service";
+import {authHeader} from "@/helpers/authservice/auth-header";
 import { menuItems } from "./horizontal-menu";
 
 export default {
   data() {
     return {
-      menuItems: menuItems
+      backendURL: process.env.VUE_APP_BACKEND_URL,
+      categories: [],
+      menuItems: menuItems,
     };
   },
   mounted() {
+
+    axios
+    .get(`${this.backendURL}/api/v1/categories?tree=true` , authHeader())
+    .then(response => (this.categories = response.data.data))
+    .catch(handleAxiosError);
+
     var links = document.getElementsByClassName("side-nav-link-ref");
     var matchingMenuItem = null;
     for (var i = 0; i < links.length; i++) {
@@ -69,6 +80,9 @@ export default {
      * Returns true or false if given menu item has child or not
      * @param item menuItem
      */
+    hasChildren(cat) {
+      return cat.sub_categories !== undefined ? cat.sub_categories.length > 0 : false;
+    },
     hasItems(item) {
       return item.subItems !== undefined ? item.subItems.length > 0 : false;
     }
@@ -83,6 +97,46 @@ export default {
           <ul class="navbar-nav">
             <!-- Menu data -->
 
+            <li class="nav-item dropdown" v-for="cat of categories" :key="cat.id">
+              <router-link
+                class="nav-link dropdown-toggle arrow-none"
+                tag="a"
+                href="javascript: void(0);"
+                @click.native="onMenuClick"
+                :to="'/category/'+cat.id"
+              >
+                <i :class="`bx ${cat.image} mr-2`"></i>
+                {{ $t(cat.name) }}
+                <div v-if="hasChildren(cat)" class="arrow-down"></div>
+              </router-link>
+              <div
+                class="dropdown-menu row"
+                aria-labelledby="topnav-dashboard"
+                v-if="hasChildren(cat)"
+              >
+                <span v-for="sub_cat in cat.sub_categories" :key="sub_cat.id">
+                  <router-link
+                    class="col dropdown-item side-nav-link-ref"
+                    v-if="!hasChildren(sub_cat)"
+                    :to="'/category/'+sub_cat.id"
+                  >{{ $t(sub_cat.name) }}</router-link>
+                  <div class="dropdown" v-if="hasChildren(sub_cat)">
+                    <a class="dropdown-item" href="javascript: void(0);" @click="onMenuClick">
+                      {{ $t(sub_cat.name) }}
+                      <div class="arrow-down"></div>
+                    </a>
+                    <div class="dropdown-menu">
+                      <router-link
+                        v-for="sub_sub_cat in sub_cat.sub_categories"
+                        :key="sub_sub_cat.id"
+                        :to="'/category/'+cat.id"
+                        class="dropdown-item side-nav-link-ref"
+                      >{{ $t(sub_sub_cat.name) }}</router-link>
+                    </div>
+                  </div>
+                </span>
+              </div>
+            </li>
             <li class="nav-item dropdown" v-for="(item, index) of menuItems" :key="index">
               <router-link
                 class="nav-link dropdown-toggle arrow-none"

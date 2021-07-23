@@ -105,7 +105,7 @@ export default [
     component: () => import('./views/frontend/home/home')
   },
   {
-    path: '/category/',
+    path: '/category/:id',
     name: 'Category',
     meta: { authRequired: true },
     component: () => import('./views/frontend/category/category')

@@ -1,38 +1,38 @@
 export const menuItems = [
-    {
-        id: 0,
-        label: "Category 1",
-        link: "/category",
-    },
-    {
-        id: 1,
-        label: "Category 2",
-        link: "/category",
-    },
-    {
-        id: 2,
-        label: "Category 3",
-        subItems: [
-            {
-                id: 1,
-                label: "Sub Cat 1",
-                link: "/category",
-                subItems: [
-                    {
-                        id: 1,
-                        label: "Sub Sub Cat 1",
-                        link: "/category",
-                        
-                    },
-                ]
-            },
-            {
-                id: 2,
-                label: "Sub Cat 2",
-                link: "/category",
-            }
-        ]
-    },
+    // {
+    //     id: 0,
+    //     label: "Category 1",
+    //     link: "/category",
+    // },
+    // {
+    //     id: 1,
+    //     label: "Category 2",
+    //     link: "/category",
+    // },
+    // {
+    //     id: 2,
+    //     label: "Category 3",
+    //     subItems: [
+    //         {
+    //             id: 1,
+    //             label: "Sub Cat 1",
+    //             link: "/category",
+    //             subItems: [
+    //                 {
+    //                     id: 1,
+    //                     label: "Sub Sub Cat 1",
+    //                     link: "/category",
+
+    //                 },
+    //             ]
+    //         },
+    //         {
+    //             id: 2,
+    //             label: "Sub Cat 2",
+    //             link: "/category",
+    //         }
+    //     ]
+    // },
     {
         id: 3,
         label: "menuitems.template.text",
@@ -83,7 +83,7 @@ export const menuItems = [
                 label: "menuitems.dashboard.text",
                 link: "/account/dashboard",
             },
-                ]
+        ]
     },
     // {
     //     id: 1,
