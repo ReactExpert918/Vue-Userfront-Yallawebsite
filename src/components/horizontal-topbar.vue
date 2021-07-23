@@ -62,6 +62,7 @@ export default {
       text: null,
       flag: null,
       value: null,
+      cartEditLoader:{},
       cart_summary: [],
       throttle:{
         timer: undefined,
@@ -125,13 +126,19 @@ export default {
       };
       axios
       .put(`${this.backendURL}/api/v1/carts`, payload , authHeader())
-      .then(response => (this.cart_summary = response.data.data))
+      .then(response => {
+        this.cart_summary = response.data.data;
+        this.cartEditLoader[cs.id] = false;
+       })
       .catch((err)=>{
         handleAxiosError(err);
         this.fetchCartSummary();
+        this.cartEditLoader[cs.id] = false;
       });
     },
     updateQuantity(cs , sign){
+      this.cartEditLoader[cs.id] = true;  
+      
       if (sign == "+"){
         cs.quantity++;
       }
@@ -213,6 +220,25 @@ export default {
   },
 };
 </script>
+<style lang="scss" scoped>
+.loader {
+  border: 16px solid #f3f3f3;
+  border-top: 16px solid #3498db;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+</style>
 
 <template>
   <header id="page-topbar">
@@ -491,7 +517,8 @@ export default {
                 <div class="media-body">
                   <div class="row">
                     <h6 class="mt-0 mb-1 col-9">{{cs.product.name}}</h6>
-                    <p class="mb-1 col-2">£{{cs.sub_total}}</p>
+                    <div v-if="cartEditLoader[cs.id]" class="loader"></div>
+                    <p v-else class="mb-1 col-2">£{{cs.sub_total}}</p>
                   </div>
                   <div class="row">
                     <h6 class="font-size-12 text-muted col-2 pt-2">Qty:</h6>
