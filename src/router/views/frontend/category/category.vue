@@ -6,7 +6,9 @@ import Layout from "../../../layouts/main";
 import PageHeader from "@/components/page-header";
 import appConfig from "@/app.config";
 
-import { clothsData } from "./data-products";
+import axios from 'axios';
+import {authHeader} from "@/helpers/authservice/auth-header";
+import {handleAxiosError} from "@/helpers/authservice/user.service";
 
 /**
  * Products component
@@ -19,10 +21,14 @@ export default {
   components: { VueSlideBar, Layout, PageHeader },
   data() {
     return {
-      clothsData: clothsData,
+      backendURL: process.env.VUE_APP_BACKEND_URL,
+      products: [],
+      category: {sub_categoeies:[]},
       title: "Category",
       sliderPrice: 800,
       currentPage: 1,
+      perPage: 20,
+      totalProducts: 0,
       discountRates: [],
     };
   },
@@ -33,22 +39,51 @@ export default {
     // axios
     //   .get(`http://localhost:8000/api/products`)
     //   .then((res) => {
-    //     this.clothsData = res.data.data;
+    //     this.products = res.data.data;
     //   })
     //   .catch((err) => {
     //     return err;
     //   });
+
+    this.fetchCategory();
+    this.fetchProducts();
+
   },
   methods: {
+    fetchProducts(){
+      axios
+      .get(`${this.backendURL}/api/v1/products/categories/${this.$route.params.id}?per_page=${this.perPage}&page=${this.currentPage}` , authHeader())
+      .then(response => {
+        this.products = response.data.data;
+        this.totalProducts = response.data.pagination.total;
+      })
+      .catch(handleAxiosError);
+    },
+    fetchCategory(){
+      axios
+      .get(`${this.backendURL}/api/v1/categories/${this.$route.params.id}` , authHeader())
+      .then(response => (this.category = response.data.data))
+      .catch(handleAxiosError);
+    },
+    fetchProductsByCategory(catID){
+      axios
+      .get(`${this.backendURL}/api/v1/products/categories/${catID}?per_page=${this.perPage}&page=${this.currentPage}` , authHeader())
+      .then(response => {
+        this.products = response.data.data;
+        this.totalProducts = response.data.pagination.total;
+      })
+      .catch(handleAxiosError);
+    },
+
     valuechange(value) {
-      this.clothsData = clothsData.filter(function (product) {
-        return product.newprice <= value.currentValue;
+      this.products = this.products.filter(function (product) {
+        return product.price <= value.currentValue;
       });
     },
 
     searchFilter(e) {
       const searchStr = e.target.value;
-      this.clothsData = clothsData.filter((product) => {
+      this.products = this.products.filter((product) => {
         return (
           product.name.toLowerCase().search(searchStr.toLowerCase()) !== -1
         );
@@ -57,11 +92,11 @@ export default {
 
     discountLessFilter(e, percentage) {
       if (e === "accepted" && this.discountRates.length === 0) {
-        this.clothsData = clothsData.filter((product) => {
+        this.products = this.products.filter((product) => {
           return product.discount < percentage;
         });
       } else {
-        this.clothsData = clothsData.filter((product) => {
+        this.products = this.products.filter((product) => {
           return product.discount >= Math.max.apply(null, this);
         }, this.discountRates);
       }
@@ -73,7 +108,7 @@ export default {
       } else {
         this.discountRates.splice(this.discountRates.indexOf(percentage), 1);
       }
-      this.clothsData = clothsData.filter((product) => {
+      this.products = this.products.filter((product) => {
         return product.discount >= Math.max.apply(null, this);
       }, this.discountRates);
     },
@@ -91,27 +126,12 @@ export default {
           <div class="card-body">
             <h4 class="card-title mb-4">Filter</h4>
 
-            <div>
-              <h5 class="font-size-14 mb-3">Clothes</h5>
+            <div v-if="category.sub_categories.length > 0">
+              <h5 class="font-size-14 mb-3" v-on:click="fetchProductsByCategory(category.id)">{{category.name}}</h5>
               <ul class="list-unstyled product-list">
-                <li>
+                <li v-for="sc in category.sub_categories" :key="sc.id">
                   <a href="javascript: void(0);">
-                    <i class="mdi mdi-chevron-right mr-1"></i> T-shirts
-                  </a>
-                </li>
-                <li>
-                  <a href="javascript: void(0);">
-                    <i class="mdi mdi-chevron-right mr-1"></i> Shirts
-                  </a>
-                </li>
-                <li>
-                  <a href="javascript: void(0);">
-                    <i class="mdi mdi-chevron-right mr-1"></i> Jeans
-                  </a>
-                </li>
-                <li>
-                  <a href="javascript: void(0);">
-                    <i class="mdi mdi-chevron-right mr-1"></i> Jackets
+                    <i class="mdi mdi-chevron-right mr-1" v-on:click="fetchProductsByCategory(sc.id)"></i> {{sc.name}}
                   </a>
                 </li>
               </ul>
@@ -237,7 +257,7 @@ export default {
         <div class="row mb-3">
           <div class="col-xl-4 col-sm-6">
             <div class="mt-2">
-              <h5>Clothes</h5>
+              <h5>{{category.name}}</h5>
             </div>
           </div>
           <div class="col-lg-8 col-sm-6">
@@ -270,24 +290,24 @@ export default {
         </div>
         <div class="row">
           <div
-            v-for="data in clothsData"
-            :key="data.id"
+            v-for="product in products"
+            :key="product.id"
             class="col-xl-4 col-sm-6"
           >
             <div class="card">
               <div class="card-body">
                 <div class="product-img position-relative">
-                  <div v-if="data.discount" class="avatar-sm product-ribbon">
+                  <div v-if="product.discount" class="avatar-sm product-ribbon">
                     <span class="avatar-title rounded-circle bg-primary"
-                      >-{{ data.discount }}%</span
+                      >-{{ product.discount }}%</span
                     >
                   </div>
                   <router-link
                     tag="a"
-                    :to="`/product/${data.id}`"
+                    :to="`/product/${product.id}`"
                   >
                     <img
-                      :src="`${data.product}`"
+                      :src="`${product.image}`"
                       alt
                       class="img-fluid mx-auto d-block"
                     />
@@ -298,8 +318,8 @@ export default {
                     <router-link
                       tag="a"
                       class="text-dark"
-                      :to="`/product/${data.id}`"
-                      >{{ data.name }}</router-link
+                      :to="`/product/${product.id}`"
+                      >{{ product.name }}</router-link
                     >
                   </h5>
                   <p class="text-muted">
@@ -311,9 +331,9 @@ export default {
                   </p>
                   <h5 class="my-0">
                     <span class="text-muted mr-2">
-                      <del>${{ data.oldprice }}</del>
+                      <del>${{ product.oldprice }}</del>
                     </span>
-                    <b>${{ data.newprice }}</b>
+                    <b>${{ product.price }}</b>
                   </h5>
                 </div>
               </div>
@@ -325,12 +345,12 @@ export default {
         <div class="row">
           <div class="col-lg-12">
             <b-pagination
-              v-if="clothsData.length > 0"
+              v-if="products.length > 0"
               class="justify-content-center"
               pills
               v-model="currentPage"
-              :total-rows="clothsData.length"
-              :per-page="6"
+              :total-rows="products.length"
+              :per-page="perPage"
               aria-controls="my-table"
             ></b-pagination>
           </div>
