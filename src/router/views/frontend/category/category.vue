@@ -29,6 +29,7 @@ export default {
       currentPage: 1,
       perPage: 20,
       totalProducts: 0,
+      currentCategoryID: "",
       discountRates: [],
     };
   },
@@ -51,6 +52,7 @@ export default {
   },
   methods: {
     fetchProducts(){
+      this.currentCategoryID = this.$route.params.id;
       axios
       .get(`${this.backendURL}/api/v1/products/categories/${this.$route.params.id}?per_page=${this.perPage}&page=${this.currentPage}` , authHeader())
       .then(response => {
@@ -66,6 +68,7 @@ export default {
       .catch(handleAxiosError);
     },
     fetchProductsByCategory(catID){
+      this.currentCategoryID = catID;
       axios
       .get(`${this.backendURL}/api/v1/products/categories/${catID}?per_page=${this.perPage}&page=${this.currentPage}` , authHeader())
       .then(response => {
@@ -74,11 +77,39 @@ export default {
       })
       .catch(handleAxiosError);
     },
+    fetchProductsByFilters(filters){
+
+      
+      if(filters){
+        var url = `${this.backendURL}/api/v1/products/categories/${filters.categoryID}?per_page=${this.perPage}&page=${this.currentPage}`;
+        if (filters.priceFrom){
+          url += `&price_from=${filters.priceFrom}`;
+        }
+        if (filters.priceTo){
+          url += `&price_to=${filters.priceTo}`;
+        }
+
+        axios
+        .get(url , authHeader())
+        .then(response => {
+          this.products = response.data.data;
+          this.totalProducts = response.data.pagination.total;
+        })
+        .catch(handleAxiosError);
+
+      }
+
+      
+    },
 
     valuechange(value) {
-      this.products = this.products.filter(function (product) {
-        return product.price <= value.currentValue;
-      });
+      // this.products = this.products.filter(function (product) {
+      //   return product.price <= value.currentValue;
+      // });
+      this.fetchProductsByFilters({
+        categoryID: this.currentCategoryID,
+        priceTo: value.currentValue,
+      })
     },
 
     searchFilter(e) {
@@ -118,7 +149,7 @@ export default {
 
 <template>
   <Layout>
-    <PageHeader :title="title" :items="items" />
+    <PageHeader :title="title"  />
 
     <div class="row">
       <div class="col-lg-3">
