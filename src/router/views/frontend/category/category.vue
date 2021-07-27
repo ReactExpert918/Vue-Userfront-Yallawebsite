@@ -31,6 +31,7 @@ export default {
       totalProducts: 0,
       currentCategoryID: "",
       discountRates: [],
+      maxStars: 5,
     };
   },
   mounted() {
@@ -142,6 +143,12 @@ export default {
       this.products = this.products.filter((product) => {
         return product.discount >= Math.max.apply(null, this);
       }, this.discountRates);
+    },
+    notRatedStars(rating){
+      if (rating > this.maxStars){
+        rating = this.maxStars;
+      }
+      return this.maxStars - rating;
     },
   },
 };
@@ -354,11 +361,8 @@ export default {
                     >
                   </h5>
                   <p class="text-muted">
-                    <i class="bx bx-star text-warning"></i>
-                    <i class="bx bx-star text-warning"></i>
-                    <i class="bx bx-star text-warning"></i>
-                    <i class="bx bx-star text-warning"></i>
-                    <i class="bx bx-star text-warning"></i>
+                    <i class="bx bx-star text-warning" v-for="i in product.rating" :key="i"></i>
+                    <i class="bx bx-star ml-0" v-for="i in notRatedStars(product.rating)" :key="i"></i>
                   </p>
                   <h5 class="my-0">
                     <span class="text-muted mr-2">
