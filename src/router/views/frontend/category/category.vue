@@ -23,7 +23,13 @@ export default {
     return {
       backendURL: process.env.VUE_APP_BACKEND_URL,
       products: [],
-      category: {sub_categoeies:[]},
+      category: {sub_categories:[]},
+      filters: {
+        priceFrom: 0,
+        priceTo: 0,
+        ratingGTE: 0,
+        ratingEQ: 0,
+      },
       title: "Category",
       sliderPrice: 800,
       currentPage: 1,
@@ -32,6 +38,14 @@ export default {
       currentCategoryID: "",
       discountRates: [],
       maxStars: 5,
+      ratingFilter4Above: "4above",
+      ratingFilter3Above: "3above",
+      ratingFilter2Above: "2above",
+      ratingFilter1: "1",
+      ratingFilter4Checked: false,
+      ratingFilter3Checked: false,
+      ratingFilter2Checked: false,
+      ratingFilter1Checked: false,
     };
   },
   mounted() {
@@ -78,16 +92,20 @@ export default {
       })
       .catch(handleAxiosError);
     },
-    fetchProductsByFilters(filters){
-
+    fetchProductsByFilters(){
       
-      if(filters){
-        var url = `${this.backendURL}/api/v1/products/categories/${filters.categoryID}?per_page=${this.perPage}&page=${this.currentPage}`;
-        if (filters.priceFrom){
-          url += `&price_from=${filters.priceFrom}`;
+        var url = `${this.backendURL}/api/v1/products/categories/${this.currentCategoryID}?per_page=${this.perPage}&page=${this.currentPage}`;
+        if (this.filters.priceFrom > 0){
+          url += `&price_from=${this.filters.priceFrom}`;
         }
-        if (filters.priceTo){
-          url += `&price_to=${filters.priceTo}`;
+        if (this.filters.priceTo > 0){
+          url += `&price_to=${this.filters.priceTo}`;
+        }
+        if (this.filters.ratingGTE > 0){
+          url += `&rating_gte=${this.filters.ratingGTE}`;
+        }
+        if (this.filters.ratingEQ > 0){
+          url += `&rating_eq=${this.filters.ratingEQ}`;
         }
 
         axios
@@ -98,19 +116,14 @@ export default {
         })
         .catch(handleAxiosError);
 
-      }
-
-      
     },
 
     valuechange(value) {
       // this.products = this.products.filter(function (product) {
       //   return product.price <= value.currentValue;
       // });
-      this.fetchProductsByFilters({
-        categoryID: this.currentCategoryID,
-        priceTo: value.currentValue,
-      })
+      this.filters.priceTo = value.currentValue;
+      this.fetchProductsByFilters();
     },
 
     searchFilter(e) {
@@ -149,6 +162,40 @@ export default {
         rating = this.maxStars;
       }
       return this.maxStars - rating;
+    },
+    filterByRating(checked, rating){
+      this.filters.ratingGTE = 0;
+      this.filters.ratingEQ = 0;
+      this.ratingFilter4Checked = false;
+      this.ratingFilter3Checked = false;
+      this.ratingFilter2Checked = false;
+      this.ratingFilter1Checked = false;
+      if(!checked){
+        rating = "";
+      }
+
+      switch (rating){
+        case this.ratingFilter4Above:
+          this.filters.ratingGTE = 4;
+          this.ratingFilter4Checked = true;
+          break;
+        case this.ratingFilter3Above:
+          this.filters.ratingGTE = 3;
+          this.ratingFilter3Checked = true;
+          break;
+        case this.ratingFilter2Above:
+          this.filters.ratingGTE = 2;
+          this.ratingFilter2Checked = true;
+          break;
+        case this.ratingFilter1:
+          this.filters.ratingEQ = 1;
+          this.ratingFilter1Checked = true;
+          break;
+      }
+
+
+      this.fetchProductsByFilters();
+
     },
   },
 };
@@ -248,8 +295,8 @@ export default {
                 <b-form-checkbox
                   id="checkbox-1"
                   name="checkbox-1"
-                  value="accepted"
-                  unchecked-value="not_accepted"
+                  v-model="ratingFilter4Checked"
+                  @change="(checked) => filterByRating(checked , ratingFilter4Above)"
                 >
                   4
                   <i class="bx bx-star text-warning"></i> & Above
@@ -259,8 +306,8 @@ export default {
                   id="checkbox-2"
                   class="mt-2"
                   name="checkbox-2"
-                  value="accepted"
-                  unchecked-value="not_accepted"
+                  v-model="ratingFilter3Checked"
+                  @change="(checked) => filterByRating(checked , ratingFilter3Above)"
                 >
                   3
                   <i class="bx bx-star text-warning"></i> & Above
@@ -270,8 +317,8 @@ export default {
                   id="checkbox-3"
                   class="mt-2"
                   name="checkbox-3"
-                  value="accepted"
-                  unchecked-value="not_accepted"
+                  v-model="ratingFilter2Checked"
+                  @change="(checked) => filterByRating(checked , ratingFilter2Above)"
                 >
                   2
                   <i class="bx bx-star text-warning"></i> & Above
@@ -280,8 +327,8 @@ export default {
                   id="checkbox-4"
                   class="mt-2"
                   name="checkbox-4"
-                  value="accepted"
-                  unchecked-value="not_accepted"
+                  v-model="ratingFilter1Checked"
+                  @change="(checked) => filterByRating(checked , ratingFilter1)"
                 >
                   1
                   <i class="bx bx-star text-warning"></i>
@@ -361,8 +408,8 @@ export default {
                     >
                   </h5>
                   <p class="text-muted">
-                    <i class="bx bx-star text-warning" v-for="i in product.rating" :key="i"></i>
-                    <i class="bx bx-star ml-0" v-for="i in notRatedStars(product.rating)" :key="i"></i>
+                    <i class="bx bx-star text-warning" v-for="i in product.rating" :key="'gold'+i"></i>
+                    <i class="bx bx-star ml-0" v-for="i in notRatedStars(product.rating)" :key="'black'+i"></i>
                   </p>
                   <h5 class="my-0">
                     <span class="text-muted mr-2">
