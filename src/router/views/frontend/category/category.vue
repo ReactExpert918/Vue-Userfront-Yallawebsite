@@ -354,10 +354,10 @@ export default {
                     <i class="bx bx-star ml-0" v-for="i in notRatedStars(product.rating)" :key="'black'+i"></i>
                   </p>
                   <h5 class="my-0">
-                    <span class="text-muted mr-2">
-                      <del>${{ product.oldprice }}</del>
+                    <span class="text-muted mr-2" v-if="product.price > product.discounted_price">
+                      <del>${{ product.price }}</del>
                     </span>
-                    <b>${{ product.price }}</b>
+                    <b>${{ product.discounted_price }}</b>
                   </h5>
                 </div>
               </div>
