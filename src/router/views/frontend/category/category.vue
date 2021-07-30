@@ -232,64 +232,6 @@ export default {
             </div>
 
             <div class="mt-4 pt-3">
-              <h5 class="font-size-14 mb-3">Discount</h5>
-
-              <b-form-checkbox
-                id="productdiscountCheck1"
-                class="mt-2"
-                value="accepted"
-                unchecked-value="not_accepted"
-                @change="discountLessFilter($event, 10)"
-                >Less than 10%</b-form-checkbox
-              >
-
-              <b-form-checkbox
-                id="productdiscountCheck2"
-                class="mt-2"
-                value="accepted"
-                unchecked-value="not_accepted"
-                @change="discountMoreFilter($event, 10)"
-                >10% or more</b-form-checkbox
-              >
-
-              <b-form-checkbox
-                id="productdiscountCheck3"
-                class="mt-2"
-                value="accepted"
-                unchecked-value="not_accepted"
-                @change="discountMoreFilter($event, 20)"
-                >20% or more</b-form-checkbox
-              >
-
-              <b-form-checkbox
-                id="productdiscountCheck4"
-                class="mt-2"
-                value="accepted"
-                unchecked-value="not_accepted"
-                @change="discountMoreFilter($event, 30)"
-                >30% or more</b-form-checkbox
-              >
-
-              <b-form-checkbox
-                id="productdiscountCheck5"
-                class="mt-2"
-                value="accepted"
-                unchecked-value="not_accepted"
-                @change="discountMoreFilter($event, 40)"
-                >40% or more</b-form-checkbox
-              >
-
-              <b-form-checkbox
-                id="productdiscountCheck6"
-                class="mt-2"
-                value="accepted"
-                unchecked-value="not_accepted"
-                @change="discountMoreFilter($event, 50)"
-                >50% or more</b-form-checkbox
-              >
-            </div>
-
-            <div class="mt-4 pt-3">
               <h5 class="font-size-14 mb-3">Customer Rating</h5>
               <div>
                 <b-form-checkbox
