@@ -9,6 +9,7 @@ import appConfig from "@/app.config";
 import axios from 'axios';
 import {authHeader} from "@/helpers/authservice/auth-header";
 import {handleAxiosError} from "@/helpers/authservice/user.service";
+import {getTimeDiffInSeconds} from "@/helpers/common";
 
 /**
  * Products component
@@ -29,6 +30,7 @@ export default {
         priceTo: 0,
         ratingGTE: 0,
         ratingEQ: 0,
+        name: "",
       },
       title: "Category",
       sliderPrice: 800,
@@ -46,6 +48,12 @@ export default {
       ratingFilter3Checked: false,
       ratingFilter2Checked: false,
       ratingFilter1Checked: false,
+      throttle:{
+        timer: undefined,
+        duration: 2, //seconds
+        last_invoke_time: undefined,
+        invoke_after: 500, //miliseconds
+      },
     };
   },
   mounted() {
@@ -107,6 +115,9 @@ export default {
         if (this.filters.ratingEQ > 0){
           url += `&rating_eq=${this.filters.ratingEQ}`;
         }
+        if (this.filters.name != ""){
+          url += `&name=${this.filters.name}`
+        }
 
         axios
         .get(url , authHeader())
@@ -128,11 +139,27 @@ export default {
 
     searchFilter(e) {
       const searchStr = e.target.value;
-      this.products = this.products.filter((product) => {
-        return (
-          product.name.toLowerCase().search(searchStr.toLowerCase()) !== -1
-        );
-      });
+      this.filters.name = searchStr.trim();
+      
+      // this.products = this.products.filter((product) => {
+      //   return (
+      //     product.name.toLowerCase().search(searchStr.toLowerCase()) !== -1
+      //   );
+      // });
+
+      // throttling so that rapid press of the buttons doesn't invoke rapid API calls
+      var t = new Date();
+      var last_t = this.throttle.last_invoke_time;
+      if (last_t){
+        if (getTimeDiffInSeconds(last_t, t) < this.throttle.duration){ // if the time difference between two button press if less than the allowed duration
+          if (this.throttle.timer){
+            clearTimeout(this.throttle.timer); // then clear the wait time to reset it
+          }
+        }
+      }
+      
+      this.throttle.timer = setTimeout(()=>(this.fetchProductsByFilters()),  this.throttle.invoke_after); // setting(resetting if cleared) the invoke time after rapid hits
+      this.throttle.last_invoke_time = new Date(); // storing the last invoked time to keep track of rapid hits
     },
 
     discountLessFilter(e, percentage) {
