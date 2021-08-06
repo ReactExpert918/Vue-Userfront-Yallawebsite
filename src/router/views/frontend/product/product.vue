@@ -5,6 +5,10 @@ import appConfig from "@/app.config";
 
 import { clothsData } from "./data-products";
 
+import axios from 'axios';
+import {authHeader} from "@/helpers/authservice/auth-header";
+import {handleAxiosError} from "@/helpers/authservice/user.service";
+
 /**
  * Product detail component
  */
@@ -16,8 +20,11 @@ export default {
   components: { Layout, PageHeader },
   data() {
     return {
-      productDetail: null,
+      backendURL: process.env.VUE_APP_BACKEND_URL,
+      productDetails: null,
       clothsData: clothsData,
+      productDetail: {},
+      maxStars: 5,
       title: "Product Detail",
       items: [
         {
@@ -32,9 +39,12 @@ export default {
     };
   },
   created() {
-    this.productDetail = clothsData.filter(product => {
-      return product.id === parseInt(this.$route.params.id);
+    this.productDetails = clothsData.filter(product => {
+      return product.id === this.$route.params.id;
     });
+  },
+  mounted(){
+    this.fetchProduct();
   },
   methods: {
     /**
@@ -44,7 +54,22 @@ export default {
       const image = event.target.src;
       const expandImg = document.getElementById("expandedImg");
       expandImg.src = image;
-    }
+    },
+    fetchProduct(){
+      axios
+      .get(`${this.backendURL}/api/v1/products/${this.$route.params.id}`, authHeader())
+      .then(response => {
+        this.productDetail = response.data.data;
+
+      })
+      .catch(handleAxiosError);
+    },
+    notRatedStars(rating){
+      if (rating > this.maxStars){
+        rating = this.maxStars;
+      }
+      return this.maxStars - rating;
+    },
   }
 };
 </script>
@@ -60,17 +85,33 @@ export default {
               <div class="col-xl-6">
                 <div class="product-detai-imgs">
                   <b-tabs pills vertical nav-wrapper-class="col-md-2 col-sm-3 col-4">
-                    <b-tab>
+                     <b-tab v-for="img in productDetail.images" :key="img">
                       <template v-slot:title>
                         <img
-                          :src="productDetail[0].images[0]"
+                          :src="img"
                           alt
                           class="img-fluid mx-auto d-block tab-img rounded"
                         />
                       </template>
                       <div class="product-img">
                         <img
-                          :src="productDetail[0].images[0]"
+                          :src="img"
+                          alt
+                          class="img-fluid mx-auto d-block"
+                        />
+                      </div>
+                    </b-tab>
+                    <!-- <b-tab>
+                      <template v-slot:title>
+                        <img
+                          :src="productDetails[0].images[0]"
+                          alt
+                          class="img-fluid mx-auto d-block tab-img rounded"
+                        />
+                      </template>
+                      <div class="product-img">
+                        <img
+                          :src="productDetails[0].images[0]"
                           alt
                           class="img-fluid mx-auto d-block"
                         />
@@ -79,14 +120,14 @@ export default {
                     <b-tab>
                       <template v-slot:title>
                         <img
-                          :src="productDetail[0].images[1]"
+                          :src="productDetails[0].images[1]"
                           alt
                           class="img-fluid mx-auto d-block tab-img rounded"
                         />
                       </template>
                       <div class="product-img">
                         <img
-                          :src="productDetail[0].images[1]"
+                          :src="productDetails[0].images[1]"
                           alt
                           class="img-fluid mx-auto d-block"
                         />
@@ -95,14 +136,14 @@ export default {
                     <b-tab>
                       <template v-slot:title>
                         <img
-                          :src="productDetail[0].images[2]"
+                          :src="productDetails[0].images[2]"
                           alt
                           class="img-fluid mx-auto d-block tab-img rounded"
                         />
                       </template>
                       <div class="product-img">
                         <img
-                          :src="productDetail[0].images[2]"
+                          :src="productDetails[0].images[2]"
                           alt
                           class="img-fluid mx-auto d-block"
                         />
@@ -111,50 +152,48 @@ export default {
                     <b-tab>
                       <template v-slot:title>
                         <img
-                          :src="productDetail[0].images[3]"
+                          :src="productDetails[0].images[3]"
                           alt
                           class="img-fluid mx-auto d-block tab-img rounded"
                         />
                       </template>
                       <div class="product-img">
                         <img
-                          :src="productDetail[0].images[3]"
+                          :src="productDetails[0].images[3]"
                           alt
                           class="img-fluid mx-auto d-block"
                         />
                       </div>
-                    </b-tab>
+                    </b-tab> -->
                   </b-tabs>
                 </div>
               </div>
 
               <div class="col-xl-6">
                 <div class="mt-3">
-                  <h4 class="mt-1 mb-3">{{productDetail[0].name}}</h4>
+                  <h4 class="mt-1 mb-3">{{productDetail.name}}</h4>
 
                   <p class="text-muted float-left mr-3">
-                    <span class="bx bx-star text-warning"></span>
-                    <span class="bx bx-star text-warning ml-1"></span>
-                    <span class="bx bx-star text-warning ml-1"></span>
-                    <span class="bx bx-star text-warning ml-1"></span>
-                    <span class="bx bx-star ml-1"></span>
+                    <span class="bx bx-star text-warning" v-for="i in productDetail.rating" :key="'gold'+i"></span>
+                    <span class="bx bx-star ml-0" v-for="i in notRatedStars(productDetail.rating)" :key="'black'+i"></span>
                   </p>
-                  <p class="text-muted mb-4">( 152 Customers Review )</p>
+                  <p class="text-muted mb-4">( {{productDetail.review_count}} Customers Review )</p>
 
-                  <h6 class="text-success text-uppercase">{{productDetail[0].discount}} Off</h6>
+                  <h6 class="text-success text-uppercase">{{productDetail.discount}} Off</h6>
                   <h5 class="mb-4">
                     Price :
-                    <span class="text-muted mr-2">
-                      <del>${{productDetail[0].oldprice}} USD</del>
+                    <span class="text-muted mr-2" v-if="productDetail.discounted_price < productDetail.price">
+                      <del>${{productDetail.price}}</del>
                     </span>
-                    <b>${{productDetail[0].newprice}} USD</b>
+                    <b>${{productDetail.discounted_price}}</b>
                   </h5>
                   <p
                     class="text-muted mb-4"
-                  >To achieve this, it would be necessary to have uniform grammar pronunciation and more common words If several languages coalesce</p>
+                    v-html="productDetail.long_description"
+                  >{{productDetail.long_description}}</p>
                   <div class="row mb-3">
                     <div class="col-md-6">
-                      <div v-for="(item, index) in productDetail[0].feature" :key="index">
+                      <div v-for="(item, index) in productDetails[0].feature" :key="index">
                         <p class="text-muted">
                           <i class="bx bx-unlink font-size-16 align-middle text-primary mr-1"></i>
                           {{item}}
@@ -178,7 +217,7 @@ export default {
                     <a
                       href="javascript: void(0);"
                       class="active"
-                      v-for="(item, index) in productDetail[0].colorVariant"
+                      v-for="(item, index) in productDetails[0].colorVariant"
                       :key="index"
                     >
                       <div class="product-color-item border rounded">
@@ -207,7 +246,7 @@ export default {
               <div class="table-responsive">
                 <table class="table mb-0 table-bordered">
                   <tbody>
-                    <tr v-for="(i, index) in productDetail[0].specification" :key="index">
+                    <tr v-for="(i, index) in productDetails[0].specification" :key="index">
                       <th scope="row" style="width: 400px;">{{i.key}}</th>
                       <td>{{i.value}}</td>
                     </tr>

@@ -1,6 +1,6 @@
 const clothsData = [
     {
-        id: 1,
+        id: 'ccb6e4dc-3db3-4353-9afe-49524a4a5914',
         product: require('@/assets/images/product/img-1.png'),
         discount: 10,
         name: 'Half sleeve T-shirt',
