@@ -21,7 +21,10 @@ export default {
     return {
       backendURL: process.env.VUE_APP_BACKEND_URL,
       productDetail: {},
+      reviews: [],
       maxStars: 5,
+      perPage: 5,
+      page: 1,
       title: "Product Detail",
       items: [
         {
@@ -40,6 +43,7 @@ export default {
   },
   mounted(){
     this.fetchProduct();
+    this.fetchReviews();
   },
   methods: {
     /**
@@ -55,6 +59,15 @@ export default {
       .get(`${this.backendURL}/api/v1/products/${this.$route.params.id}`, authHeader())
       .then(response => {
         this.productDetail = response.data.data;
+
+      })
+      .catch(handleAxiosError);
+    },
+    fetchReviews(){
+      axios
+      .get(`${this.backendURL}/api/v1/products/reviews/${this.$route.params.id}?per_page=${this.perPage}&page=${this.page}`, authHeader())
+      .then(response => {
+        this.reviews = response.data.data;
 
       })
       .catch(handleAxiosError);
@@ -238,20 +251,24 @@ export default {
             <!-- end Specifications -->
 
             <div class="mt-5">
-              <h5 class="mb-4">Reviews :</h5>
+              <h5 v-if="reviews.length > 0" class="mb-4">Reviews :</h5>
 
-              <div class="media py-3 border-bottom">
-                <img
+              <div class="media py-3 border-bottom" v-for="review in reviews" :key="review.id">
+                <!-- <img
                   src="@/assets/images/users/avatar-2.jpg"
                   class="avatar-xs mr-3 rounded-circle"
                   alt="img"
-                />
+                /> -->
                 <div class="media-body">
-                  <h5 class="mt-0 font-size-15">Brian</h5>
+                  <h5 class="mt-0 font-size-15">{{review.customer.first_name}} {{review.customer.last_name}}
+                    
+                  </h5>
+                  <span class="bx bx-star text-warning" v-for="i in review.rating" :key="'gold'+i"></span>
+                    <span class="bx bx-star ml-0" v-for="i in notRatedStars(review.rating)" :key="'black'+i"></span>
                   <p
                     class="text-muted"
-                  >If several languages coalesce, the grammar of the resulting language.</p>
-                  <ul class="list-inline float-sm-right">
+                  >{{review.comment}}</p>
+                  <!-- <ul class="list-inline float-sm-right">
                     <li class="list-inline-item">
                       <a href="javascript: void(0);">
                         <i class="far fa-thumbs-up mr-1"></i> Like
@@ -262,94 +279,9 @@ export default {
                         <i class="far fa-comment-dots mr-1"></i> Comment
                       </a>
                     </li>
-                  </ul>
+                  </ul> -->
                   <div class="text-muted">
-                    <i class="far fa-calendar-alt text-primary mr-1"></i> 5 hrs ago
-                  </div>
-                </div>
-              </div>
-              <div class="media py-3 border-bottom">
-                <img
-                  src="@/assets/images/users/avatar-4.jpg"
-                  class="avatar-xs mr-3 rounded-circle"
-                  alt="img"
-                />
-                <div class="media-body">
-                  <h5 class="mt-0 font-size-15">Denver</h5>
-                  <p
-                    class="text-muted"
-                  >To an English person, it will seem like simplified English, as a skeptical Cambridge</p>
-                  <ul class="list-inline float-sm-right">
-                    <li class="list-inline-item">
-                      <a href="javascript: void(0);">
-                        <i class="far fa-thumbs-up mr-1"></i> Like
-                      </a>
-                    </li>
-                    <li class="list-inline-item">
-                      <a href="javascript: void(0);">
-                        <i class="far fa-comment-dots mr-1"></i> Comment
-                      </a>
-                    </li>
-                  </ul>
-                  <div class="text-muted">
-                    <i class="far fa-calendar-alt text-primary mr-1"></i> 07 Oct, 2019
-                  </div>
-                  <div class="media mt-4">
-                    <img
-                      src="@/assets/images/users/avatar-5.jpg"
-                      class="avatar-xs mr-3 rounded-circle"
-                      alt="img"
-                    />
-                    <div class="media-body">
-                      <h5 class="mt-0 font-size-15">Henry</h5>
-                      <p
-                        class="text-muted"
-                      >Their separate existence is a myth. For science, music, sport, etc.</p>
-                      <ul class="list-inline float-sm-right">
-                        <li class="list-inline-item">
-                          <a href="javascript: void(0);">
-                            <i class="far fa-thumbs-up mr-1"></i> Like
-                          </a>
-                        </li>
-                        <li class="list-inline-item">
-                          <a href="javascript: void(0);">
-                            <i class="far fa-comment-dots mr-1"></i> Comment
-                          </a>
-                        </li>
-                      </ul>
-                      <div class="text-muted">
-                        <i class="far fa-calendar-alt text-primary mr-1"></i> 08 Oct, 2019
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="media mt-3 border-bottom">
-                <div class="avatar-xs mr-3">
-                  <span
-                    class="avatar-title bg-soft-primary text-primary rounded-circle font-size-16"
-                  >N</span>
-                </div>
-                <div class="media-body">
-                  <h5 class="mt-0 font-size-15">Neal</h5>
-                  <p
-                    class="text-muted"
-                  >Everyone realizes why a new common language would be desirable.</p>
-                  <ul class="list-inline float-sm-right">
-                    <li class="list-inline-item">
-                      <a href="javascript: void(0);">
-                        <i class="far fa-thumbs-up mr-1"></i> Like
-                      </a>
-                    </li>
-                    <li class="list-inline-item">
-                      <a href="javascript: void(0);">
-                        <i class="far fa-comment-dots mr-1"></i> Comment
-                      </a>
-                    </li>
-                  </ul>
-                  <div class="text-muted">
-                    <i class="far fa-calendar-alt text-primary mr-1"></i> 05 Oct, 2019
+                    <i class="far fa-calendar-alt text-primary mr-1"></i> {{review.created_at}}
                   </div>
                 </div>
               </div>
