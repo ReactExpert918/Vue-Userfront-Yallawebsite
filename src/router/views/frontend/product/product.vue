@@ -3,7 +3,6 @@ import Layout from "../../../layouts/main";
 import PageHeader from "@/components/page-header";
 import appConfig from "@/app.config";
 
-import { clothsData } from "./data-products";
 
 import axios from 'axios';
 import {authHeader} from "@/helpers/authservice/auth-header";
@@ -21,8 +20,6 @@ export default {
   data() {
     return {
       backendURL: process.env.VUE_APP_BACKEND_URL,
-      productDetails: null,
-      clothsData: clothsData,
       productDetail: {},
       maxStars: 5,
       title: "Product Detail",
@@ -39,9 +36,7 @@ export default {
     };
   },
   created() {
-    this.productDetails = clothsData.filter(product => {
-      return product.id === this.$route.params.id;
-    });
+   
   },
   mounted(){
     this.fetchProduct();
@@ -189,41 +184,23 @@ export default {
                   </h5>
                   <p
                     class="text-muted mb-4"
-                    v-html="productDetail.long_description"
-                  >{{productDetail.long_description}}</p>
-                  <div class="row mb-3">
-                    <div class="col-md-6">
-                      <div v-for="(item, index) in productDetails[0].feature" :key="index">
-                        <p class="text-muted">
-                          <i class="bx bx-unlink font-size-16 align-middle text-primary mr-1"></i>
-                          {{item}}
-                        </p>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div>
-                        <p class="text-muted">
-                          <i class="bx bx-user-voice font-size-16 align-middle text-primary mr-1"></i> Bass
-                        </p>
-                        <p class="text-muted">
-                          <i class="bx bx-cog font-size-16 align-middle text-primary mr-1"></i> Warranty : 1 Year
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                    v-html="productDetail.short_description"
+                  >{{productDetail.short_description}}</p>
+                  
 
-                  <div class="product-color">
-                    <h5 class="font-size-15">Color :</h5>
+                  <div class="product-color" v-for="spec in productDetail.specifications" :key="spec.id">
+                    <h5 class="font-size-15">{{spec.name}} :</h5>
                     <a
                       href="javascript: void(0);"
                       class="active"
-                      v-for="(item, index) in productDetails[0].colorVariant"
+                      v-for="(value, index) in spec.values"
                       :key="index"
+                      style="padding: 2px;margin: 2px;"
                     >
-                      <div class="product-color-item border rounded">
+                      <!-- <div class="product-color-item border rounded">
                         <img :src="item.value" alt class="avatar-md" />
-                      </div>
-                      <p>{{item.key}}</p>
+                      </div> -->
+                      <p>{{value}}</p>
                     </a>
                   </div> 
                   <div class="row">
@@ -241,14 +218,18 @@ export default {
             <!-- end row -->
 
             <div class="mt-5">
-              <h5 class="mb-3">Specifications :</h5>
+              <p
+                    class="text-muted mb-4"
+                    v-html="productDetail.long_description"
+                  >{{productDetail.long_description}}</p>
+              <h5 v-if="productDetail.attributes.length > 0" class="mb-3">Specifications :</h5>
 
               <div class="table-responsive">
                 <table class="table mb-0 table-bordered">
                   <tbody>
-                    <tr v-for="(i, index) in productDetails[0].specification" :key="index">
-                      <th scope="row" style="width: 400px;">{{i.key}}</th>
-                      <td>{{i.value}}</td>
+                    <tr v-for="attr in productDetail.attributes" :key="attr.id">
+                      <th scope="row" style="width: 400px;">{{attr.name}}</th>
+                      <td>{{attr.value}}</td>
                     </tr>
                   </tbody>
                 </table>
