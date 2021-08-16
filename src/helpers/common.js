@@ -6,6 +6,18 @@ export function copyArrayOfObjects(arr) {
     return copyArr;
 }
 
+
+export function objectsEqual(o1, o2) {
+    return typeof o1 === 'object' && Object.keys(o1).length > 0
+        ? Object.keys(o1).length === Object.keys(o2).length
+        && Object.keys(o1).every(p => objectsEqual(o1[p], o2[p]))
+        : o1 === o2;
+}
+
+export function arrayOfObjectEqual(a1, a2) {
+    return a1.length === a2.length && a1.every((o, idx) => objectsEqual(o, a2[idx]));
+}
+
 function base64url(source) {
     // Encode in classical base64
     var encodedSource = CryptoJS.enc.Base64.stringify(source);

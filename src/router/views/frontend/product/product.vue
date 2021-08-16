@@ -7,6 +7,7 @@ import appConfig from "@/app.config";
 import axios from 'axios';
 import {authHeader} from "@/helpers/authservice/auth-header";
 import {handleAxiosError} from "@/helpers/authservice/user.service";
+import {arrayOfObjectEqual} from "@/helpers/common";
 
 /**
  * Product detail component
@@ -25,6 +26,9 @@ export default {
       maxStars: 5,
       perPage: 5,
       page: 1,
+      selectedOptionMap: {},
+      currentVariation: {},
+      quantity: 1,
       title: "Product Detail",
       items: [
         {
@@ -59,7 +63,15 @@ export default {
       .get(`${this.backendURL}/api/v1/products/${this.$route.params.id}`, authHeader())
       .then(response => {
         this.productDetail = response.data.data;
-
+        for(var i = 0; i < this.productDetail.specifications.length; i++){
+          var spec = this.productDetail.specifications[i];
+          if (spec.values.length > 0){
+            this.selectedOptionMap[spec.name] = spec.values[0];
+          }
+        }
+        if (this.productDetail.variations.length > 0){
+          this.parseVariation();
+        }
       })
       .catch(handleAxiosError);
     },
@@ -72,12 +84,58 @@ export default {
       })
       .catch(handleAxiosError);
     },
+    addToCart(){
+      var variation_id = "";
+      if (this.productDetail.variations.length > 0){
+        variation_id = this.currentVariation.id;
+      }
+      const payload = {
+        product_id: this.productDetail.id,
+        quantity: parseInt(this.quantity),
+        variation_id: variation_id
+      }
+
+      axios
+      .post(`${this.backendURL}/api/v1/carts`, payload, authHeader())
+      .then(response => {
+        alert(`${response.data.data.id} added to cart!`);
+
+      })
+      .catch(handleAxiosError);
+    },
     notRatedStars(rating){
       if (rating > this.maxStars){
         rating = this.maxStars;
       }
       return this.maxStars - rating;
     },
+    optionSelected(specName , val){
+      var option = this.selectedOptionMap[specName];
+      if (option && option == val){
+        return true;
+      }
+      return false;
+    },
+    selectOption(specName , val){
+      this.selectedOptionMap[specName] = val;
+      this.parseVariation();
+    },
+    parseVariation(){
+      var labels = [];
+      for(var key in this.selectedOptionMap){
+        var obj = {};
+        obj[key] = this.selectedOptionMap[key];
+        labels.push(obj);
+      }
+
+      for(var i = 0; i < this.productDetail.variations.length; i++){
+        var variation = this.productDetail.variations[i];
+        if (arrayOfObjectEqual(variation.labels , labels)){
+          this.currentVariation = variation;
+          break;
+        }
+      }
+    }
   }
 };
 </script>
@@ -109,70 +167,6 @@ export default {
                         />
                       </div>
                     </b-tab>
-                    <!-- <b-tab>
-                      <template v-slot:title>
-                        <img
-                          :src="productDetails[0].images[0]"
-                          alt
-                          class="img-fluid mx-auto d-block tab-img rounded"
-                        />
-                      </template>
-                      <div class="product-img">
-                        <img
-                          :src="productDetails[0].images[0]"
-                          alt
-                          class="img-fluid mx-auto d-block"
-                        />
-                      </div>
-                    </b-tab>
-                    <b-tab>
-                      <template v-slot:title>
-                        <img
-                          :src="productDetails[0].images[1]"
-                          alt
-                          class="img-fluid mx-auto d-block tab-img rounded"
-                        />
-                      </template>
-                      <div class="product-img">
-                        <img
-                          :src="productDetails[0].images[1]"
-                          alt
-                          class="img-fluid mx-auto d-block"
-                        />
-                      </div>
-                    </b-tab>
-                    <b-tab>
-                      <template v-slot:title>
-                        <img
-                          :src="productDetails[0].images[2]"
-                          alt
-                          class="img-fluid mx-auto d-block tab-img rounded"
-                        />
-                      </template>
-                      <div class="product-img">
-                        <img
-                          :src="productDetails[0].images[2]"
-                          alt
-                          class="img-fluid mx-auto d-block"
-                        />
-                      </div>
-                    </b-tab>
-                    <b-tab>
-                      <template v-slot:title>
-                        <img
-                          :src="productDetails[0].images[3]"
-                          alt
-                          class="img-fluid mx-auto d-block tab-img rounded"
-                        />
-                      </template>
-                      <div class="product-img">
-                        <img
-                          :src="productDetails[0].images[3]"
-                          alt
-                          class="img-fluid mx-auto d-block"
-                        />
-                      </div>
-                    </b-tab> -->
                   </b-tabs>
                 </div>
               </div>
@@ -213,15 +207,16 @@ export default {
                       <!-- <div class="product-color-item border rounded">
                         <img :src="item.value" alt class="avatar-md" />
                       </div> -->
-                      <p>{{value}}</p>
+                      <button v-if="optionSelected(spec.name , value)" class="filter-button" style="background:red" v-on:click="selectOption(spec.name , value)">{{value}}</button>
+                      <button v-else class="filter-button" v-on:click="selectOption(spec.name , value)">{{value}}</button>
                     </a>
                   </div> 
                   <div class="row">
                     <div class="col-md-3">
-                      <b-form-input id="input-name" type="number" placeholder="" value="1" class="text-center"></b-form-input>
+                      <b-form-input id="input-name" type="number" placeholder="" v-model="quantity" class="text-center"></b-form-input>
                     </div>
                     <div class="col-md-9">
-                        <b-button type="submit" variant="primary" class="btn-block w-large">Add To Cart</b-button>
+                        <b-button type="submit" variant="primary" class="btn-block w-large" v-on:click="addToCart">Add To Cart</b-button>
                     </div>
                   </div>
 
