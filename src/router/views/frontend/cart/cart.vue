@@ -3,6 +3,10 @@ import Layout from '../../../layouts/main'
 import PageHeader from '@/components/page-header'
 import appConfig from "@/app.config";
 
+import axios from 'axios';
+import {authHeader} from "@/helpers/authservice/auth-header";
+import {handleAxiosError} from "@/helpers/authservice/user.service";
+
 /**
  * Product-cart component
  */
@@ -14,6 +18,8 @@ export default {
   components: { Layout, PageHeader },
   data() {
     return {
+      backendURL: process.env.VUE_APP_BACKEND_URL,
+      cart: {},
       title: 'Cart',
       items: [
         {
@@ -27,6 +33,33 @@ export default {
       ],
     }
   },
+  mounted() {
+    this.fetchCart();
+  },
+  methods: {
+    fetchCart(){
+      axios
+      .get(`${this.backendURL}/api/v1/carts`, authHeader())
+      .then(response => {
+        this.cart = response.data.data;
+
+      })
+      .catch(handleAxiosError);
+    },
+    removeProduct(id){
+      const payload = {
+        cart_item_id: id,
+        quantity: 0,
+      }
+      axios
+      .put(`${this.backendURL}/api/v1/carts`,payload, authHeader())
+      .then(response => {
+        window.console.log(response.data.data);
+        this.fetchCart();
+      })
+      .catch(handleAxiosError);
+    }
+  }
 }
 </script>
 
@@ -49,10 +82,10 @@ export default {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
+                  <tr v-for="product in cart.products" :key="product.cart_id">
                     <td>
                       <img
-                        src="@/assets/images/product/img-1.png"
+                        :src="product.image"
                         alt="product-img"
                         title="product-img"
                         class="avatar-md"
@@ -61,25 +94,25 @@ export default {
                     <td>
                       <h5 class="font-size-14 text-truncate">
                         <router-link
-                          to="/ecommerce/product-detail"
+                          :to="`/product/${product.id}`"
                           class="text-dark"
-                        >Half sleeve T-shirt</router-link>
+                        >{{product.name}}</router-link>
                       </h5>
-                      <p class="mb-0">
-                        Color :
-                        <span class="font-weight-medium">Maroon</span>
+                      <p class="mb-0" v-for="option in product.options" :key="option.name">
+                        {{option.name}} :
+                        <span class="font-weight-medium">{{option.value}}</span>
                       </p>
                     </td>
-                    <td>$ 450</td>
-                    <td>02</td>
-                    <td>$ 900</td>
+                    <td>$ {{product.price}}</td>
+                    <td>{{product.quantity}}</td>
+                    <td>$ {{product.total}}</td>
                     <td>
                       <a href="javascript:void(0);" class="action-icon text-danger">
-                        <i class="mdi mdi-trash-can font-size-18"></i>
+                        <i class="mdi mdi-trash-can font-size-18" v-on:click="removeProduct(product.cart_id)"></i>
                       </a>
                     </td>
                   </tr>
-                  <tr>
+                  <!-- <tr>
                     <td>
                       <img
                         src="@/assets/images/product/img-2.png"
@@ -225,7 +258,7 @@ export default {
                         <i class="mdi mdi-trash-can font-size-18"></i>
                       </a>
                     </td>
-                  </tr>
+                  </tr> -->
                 </tbody>
               </table>
             </div>
