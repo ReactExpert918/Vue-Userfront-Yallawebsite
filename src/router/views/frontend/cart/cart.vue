@@ -19,7 +19,7 @@ export default {
   data() {
     return {
       backendURL: process.env.VUE_APP_BACKEND_URL,
-      cart: {},
+      cart: {total:{} , products:[]},
       title: 'Cart',
       items: [
         {
@@ -112,153 +112,6 @@ export default {
                       </a>
                     </td>
                   </tr>
-                  <!-- <tr>
-                    <td>
-                      <img
-                        src="@/assets/images/product/img-2.png"
-                        alt="product-img"
-                        title="product-img"
-                        class="avatar-md"
-                      />
-                    </td>
-                    <td>
-                      <h5 class="font-size-14 text-truncate">
-                        <router-link
-                          to="/ecommerce/product-detail"
-                          class="text-dark"
-                        >Light blue T-shirt</router-link>
-                      </h5>
-                      <p class="mb-0">
-                        Color :
-                        <span class="font-weight-medium">Light blue</span>
-                      </p>
-                    </td>
-                    <td>$ 225</td>
-                    <td>01</td>
-                    <td>$ 225</td>
-                    <td>
-                      <a href="javascript:void(0);" class="action-icon text-danger">
-                        <i class="mdi mdi-trash-can font-size-18"></i>
-                      </a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <img
-                        src="@/assets/images/product/img-3.png"
-                        alt="product-img"
-                        title="product-img"
-                        class="avatar-md"
-                      />
-                    </td>
-                    <td>
-                      <h5 class="font-size-14 text-truncate">
-                        <router-link
-                          to="/ecommerce/product-detail"
-                          class="text-dark"
-                        >Black Color T-shirt</router-link>
-                      </h5>
-                      <p class="mb-0">
-                        Color :
-                        <span class="font-weight-medium">Black</span>
-                      </p>
-                    </td>
-                    <td>$ 152</td>
-                    <td>02</td>
-                    <td>$ 304</td>
-                    <td>
-                      <a href="javascript:void(0);" class="action-icon text-danger">
-                        <i class="mdi mdi-trash-can font-size-18"></i>
-                      </a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <img
-                        src="@/assets/images/product/img-4.png"
-                        alt="product-img"
-                        title="product-img"
-                        class="avatar-md"
-                      />
-                    </td>
-                    <td>
-                      <h5 class="font-size-14 text-truncate">
-                        <router-link to="/ecommerce/product-detail" class="text-dark">Hoodie (Blue)</router-link>
-                      </h5>
-                      <p class="mb-0">
-                        Color :
-                        <span class="font-weight-medium">Blue</span>
-                      </p>
-                    </td>
-                    <td>$ 145</td>
-                    <td>02</td>
-                    <td>$ 290</td>
-                    <td>
-                      <a href="javascript:void(0);" class="action-icon text-danger">
-                        <i class="mdi mdi-trash-can font-size-18"></i>
-                      </a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <img
-                        src="@/assets/images/product/img-5.png"
-                        alt="product-img"
-                        title="product-img"
-                        class="avatar-md"
-                      />
-                    </td>
-                    <td>
-                      <h5 class="font-size-14 text-truncate">
-                        <router-link
-                          to="/ecommerce/product-detail"
-                          class="text-dark"
-                        >Half sleeve T-Shirt</router-link>
-                      </h5>
-                      <p class="mb-0">
-                        Color :
-                        <span class="font-weight-medium">Light orange</span>
-                      </p>
-                    </td>
-                    <td>$ 138</td>
-                    <td>01</td>
-                    <td>$ 138</td>
-                    <td>
-                      <a href="javascript:void(0);" class="action-icon text-danger">
-                        <i class="mdi mdi-trash-can font-size-18"></i>
-                      </a>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <img
-                        src="@/assets/images/product/img-6.png"
-                        alt="product-img"
-                        title="product-img"
-                        class="avatar-md"
-                      />
-                    </td>
-                    <td>
-                      <h5 class="font-size-14 text-truncate">
-                        <router-link
-                          to="/ecommerce/product-detail"
-                          class="text-dark"
-                        >Green color T-shirt</router-link>
-                      </h5>
-                      <p class="mb-0">
-                        Color :
-                        <span class="font-weight-medium">Green</span>
-                      </p>
-                    </td>
-                    <td>$ 152</td>
-                    <td>02</td>
-                    <td>$ 304</td>
-                    <td>
-                      <a href="javascript:void(0);" class="action-icon text-danger">
-                        <i class="mdi mdi-trash-can font-size-18"></i>
-                      </a>
-                    </td>
-                  </tr> -->
                 </tbody>
               </table>
             </div>
@@ -342,23 +195,23 @@ export default {
                 <tbody>
                   <tr>
                     <td>Grand Total :</td>
-                    <td>$ 1,857</td>
+                    <td>$ {{cart.total.grand_total}}</td>
                   </tr>
                   <tr>
                     <td>Discount :</td>
-                    <td>- $ 157</td>
+                    <td>- $ {{cart.total.discount}}</td>
                   </tr>
                   <tr>
                     <td>Shipping Charge :</td>
-                    <td>$ 25</td>
+                    <td>$ {{cart.total.shipping_charge}}</td>
                   </tr>
                   <tr>
                     <td>Estimated Tax :</td>
-                    <td>$ 19.22</td>
+                    <td>$ {{cart.total.tax}}</td>
                   </tr>
                   <tr>
                     <th>Total :</th>
-                    <th>$ 1744.22</th>
+                    <th>$ {{cart.total.total}}</th>
                   </tr>
                 </tbody>
               </table>
