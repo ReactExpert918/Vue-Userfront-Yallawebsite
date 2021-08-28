@@ -3,7 +3,10 @@ import Layout from "../../../layouts/main";
 import PageHeader from "@/components/page-header";
 import appConfig from "@/app.config";
 
-import Multiselect from "vue-multiselect";
+
+import axios from 'axios';
+import {authHeader} from "@/helpers/authservice/auth-header";
+import {handleAxiosError} from "@/helpers/authservice/user.service";
 
 /**
  * Product-checkout Component
@@ -13,10 +16,15 @@ export default {
     title: "Checkout",
     meta: [{ name: "description", content: appConfig.description }]
   },
-  components: { Multiselect, Layout, PageHeader },
+  components: {Layout, PageHeader },
   data() {
     return {
+      backendURL: process.env.VUE_APP_BACKEND_URL,
       title: "Checkout",
+      stepShipping: 'shipping',
+      stepBilling: 'billing',
+      stepCheckout: 'checkout',
+      step: "",
       items: [
         {
           text: "Ecommerce",
@@ -27,73 +35,50 @@ export default {
           active: true
         }
       ],
-      stateValue: null,
-      countryValue: null,
-      stateOptions: [
-        "Alaska",
-        "Hawaii",
-        "California",
-        "Nevada",
-        "Oregon",
-        "Washington",
-        "Arizona",
-        "Colorado",
-        "Idaho",
-        "Montana",
-        "Nebraska",
-        "New Mexico",
-        "North Dakota",
-        "Utah",
-        "Wyoming",
-        "Alabama",
-        "Arkansas",
-        "Illinois",
-        "Iowa"
-      ],
-      countryOptions: [
-        "Afghanistan",
-        "Albania",
-        "Algeria",
-        "American Samoa",
-        "Andorra",
-        "Angola",
-        "Anguilla",
-        "Antarctica",
-        "Argentina",
-        "Hawaii",
-        "California",
-        "Colombia",
-        "Congo",
-        "Dominica",
-        "Denmark",
-        "Nevada",
-        "Oregon",
-        "Washington",
-        "Ecuador",
-        "Idaho",
-        "Montana",
-        "Namibia",
-        "Nauru",
-        "Nepal",
-        "Netherlands",
-        "Nicaragua",
-        "New Caledonia",
-        "North Dakota",
-        "Tonga",
-        "Tunisia",
-        "Thailand",
-        "Turkey",
-        "Illinois",
-        "Tuvalu",
-        "Uganda",
-        "Uruguay",
-        "United Arab Emirates",
-        "United Kingdom",
-        "Venezuela",
-        "Zimbabwe",
-        "Uruguay"
-      ]
+      selectedCountry: {},
+      countries: [],
+      additional_instruction: "",
+      shipping_address:{
+        first_name: "",
+        last_name: "",
+        name: "",
+        email: "",
+        phone: "",
+        address: "",
+        country: "",
+        state: "",
+        city: "",
+      }
     };
+  },
+  mounted(){
+    this.step = this.stepShipping;
+    this.fetchAllowedCountries();
+  },
+  methods: {
+    fetchAllowedCountries(){
+      axios
+      .get(`${this.backendURL}/api/v1/areas/countries`, authHeader())
+      .then(response => {
+        this.countries = response.data.data;
+      })
+      .catch(handleAxiosError);
+    },
+    processShippingAddress(){
+      var nameArr = this.shipping_address.name.split(" ");
+      this.shipping_address.first_name = nameArr[0];
+      if (nameArr.length > 1){
+        this.shipping_address.last_name = nameArr[1];
+      }
+
+      if (this.selectedCountry.name){
+        this.shipping_address.country = this.selectedCountry.name;
+      }
+      
+      window.console.log(this.step);
+      window.console.log(this.shipping_address);
+      this.step = this.stepBilling;
+    }
   }
 };
 </script>
@@ -103,7 +88,7 @@ export default {
     <PageHeader :title="title" :items="items" />
     <div class="checkout-tabs">
       <b-tabs pills vertical nav-class="p-0" nav-wrapper-class="col-lg-2 w-100">
-        <b-tab active>
+        <b-tab :active="step==stepShipping" v-on:click="step=stepShipping">
           <template v-slot:title>
             <i class="bx bxs-truck d-block check-nav-icon mt-4 mb-2"></i>
             <p class="font-weight-bold mb-4">Shipping Info</p>
@@ -119,7 +104,7 @@ export default {
                       <label for="input-name">Name</label>
                     </b-col>
                     <b-col md="10">
-                      <b-form-input id="input-name" placeholder="Enter your name"></b-form-input>
+                      <b-form-input id="input-name" placeholder="Enter your name" v-model="shipping_address.name"></b-form-input>
                     </b-col>
                   </b-row>
 
@@ -128,7 +113,7 @@ export default {
                       <label for="billing-email-address">Email Address</label>
                     </b-col>
                     <b-col md="10">
-                      <b-form-input id="billing-email-address" placeholder="Enter your email"></b-form-input>
+                      <b-form-input id="billing-email-address" placeholder="Enter your email" v-model="shipping_address.email"></b-form-input>
                     </b-col>
                   </b-row>
 
@@ -137,7 +122,7 @@ export default {
                       <label for="billing-phone">Phone</label>
                     </b-col>
                     <b-col md="10">
-                      <b-form-input id="billing-phone" placeholder="Enter your Phone no."></b-form-input>
+                      <b-form-input id="billing-phone" placeholder="Enter your Phone no." v-model="shipping_address.phone"></b-form-input>
                     </b-col>
                   </b-row>
 
@@ -150,6 +135,7 @@ export default {
                         id="billing-address"
                         rows="3"
                         placeholder="Enter full address"
+                        v-model="shipping_address.address"
                       ></b-form-textarea>
                     </b-col>
                   </b-row>
@@ -157,14 +143,22 @@ export default {
                   <div class="form-group row mb-4">
                     <label class="col-md-2 col-form-label">Country</label>
                     <div class="col-md-10">
-                      <multiselect v-model="countryValue" :options="countryOptions"></multiselect>
+                      <select class="custom-select custom-select-sm" v-model="selectedCountry">
+                        <option v-for="country in countries" v-bind:value="country" :key="country.id">{{country.name}}</option>
+                      </select>
                     </div>
                   </div>
 
                   <div class="form-group row mb-4">
-                    <label class="col-md-2 col-form-label">States</label>
+                    <label class="col-md-2 col-form-label">State</label>
                     <div class="col-md-10">
-                      <multiselect v-model="stateValue" :options="stateOptions"></multiselect>
+                      <b-form-input id="state" placeholder="Enter your State" v-model="shipping_address.state"></b-form-input>
+                    </div>
+                  </div>
+                  <div class="form-group row mb-4">
+                    <label class="col-md-2 col-form-label">City</label>
+                    <div class="col-md-10">
+                      <b-form-input id="city" placeholder="Enter your City" v-model="shipping_address.city"></b-form-input>
                     </div>
                   </div>
                   <b-row class="mb-4">
@@ -176,6 +170,7 @@ export default {
                         id="example-textarea"
                         rows="3"
                         placeholder="Write some note.."
+                        v-model="additional_instruction"
                       ></b-form-textarea>
                     </b-col>
                   </b-row>
@@ -195,16 +190,16 @@ export default {
               <!-- end col -->
               <div class="col-sm-6">
                 <div class="text-sm-right">
-                  <router-link tag="a" to="/ecommerce/checkout" class="btn btn-success">
-                    <i class="mdi mdi-truck-fast mr-1"></i> Proceed to Shipping
-                  </router-link>
+                  <div class="btn btn-success" v-on:click="processShippingAddress">
+                    <i class="mdi mdi-truck-fast mr-1"></i> Proceed to Billing
+                  </div>
                 </div>
               </div>
               <!-- end col -->
             </div>
           </b-card-text>
         </b-tab>
-        <b-tab>
+        <b-tab :active="step==stepBilling" v-on:click="step=stepBilling">
           <template v-slot:title>
             <i class="bx bx-money d-block check-nav-icon mt-4 mb-2"></i>
             <p class="font-weight-bold mb-4">Payment Info</p>
@@ -325,7 +320,7 @@ export default {
             </div>
           </b-card-text>
         </b-tab>
-        <b-tab>
+        <b-tab :active="step==stepCheckout" v-on:click="step=stepCheckout">
           <template v-slot:title>
             <i class="bx bx-badge-check d-block check-nav-icon mt-4 mb-2"></i>
             <p class="font-weight-bold mb-4">Confirmation</p>

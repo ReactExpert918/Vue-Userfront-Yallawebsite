@@ -124,7 +124,7 @@ export default {
               <!-- end col -->
               <div class="col-sm-6">
                 <div class="text-sm-right mt-2 mt-sm-0">
-                  <router-link to="/ecommerce/checkout" class="btn btn-success">
+                  <router-link to="/checkout" class="btn btn-success">
                     <i class="mdi mdi-cart-arrow-right mr-1"></i> Checkout
                   </router-link>
                 </div>
