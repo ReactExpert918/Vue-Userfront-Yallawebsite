@@ -24,6 +24,10 @@ export default {
       stepShipping: 'shipping',
       stepBilling: 'billing',
       stepCheckout: 'checkout',
+      paymentData: [],
+      paymentMap: {},
+      currentPayment:{},
+      currentPaymentType: {},
       step: "",
       items: [
         {
@@ -54,6 +58,7 @@ export default {
   mounted(){
     this.step = this.stepShipping;
     this.fetchAllowedCountries();
+    this.fetchPaymentMethods();
   },
   methods: {
     fetchAllowedCountries(){
@@ -63,6 +68,107 @@ export default {
         this.countries = response.data.data;
       })
       .catch(handleAxiosError);
+    },
+    fetchPaymentMethods(){
+      axios
+      .get(`${this.backendURL}/api/v1/payments/methods` , authHeader())
+      .then(response => {
+          this.paymentData = response.data.data;
+
+          for(var i = 0; i < this.paymentData.length; i++){
+            var pd = this.paymentData[i];
+            if (!(pd.display_name in this.paymentMap)){
+               this.paymentMap[pd.display_name] = pd;
+            }
+            if (pd.display_name == "stripe"){
+                // include stripe library dynamically
+                this.includeStripe('js.stripe.com/v3/' , function(){
+                  this.configureStripe();
+                }.bind(this));
+            }
+          }          
+        })
+      .catch(handleAxiosError);
+    },
+    // Invluce stripe dynamically
+    includeStripe( URL, callback ){
+      let documentTag = document, tag = 'script',
+          object = documentTag.createElement(tag),
+          scriptTag = documentTag.getElementsByTagName(tag)[0];
+      object.src = '//' + URL;
+      if (callback) { object.addEventListener('load', function (e) { callback(null, e); }, false); }
+      scriptTag.parentNode.insertBefore(object, scriptTag);
+    },
+    configureStripe(){
+      this.stripe = window.Stripe(this.paymentMap["stripe"].api_key);
+
+      this.elements = this.stripe.elements();
+      this.card = this.elements.create('card' , {
+        hidePostalCode : true,
+      });
+
+      this.card.mount('#card-element');
+    },
+    purchase(orderID){
+      if (this.currentPayment.display_name == 'stripe'){
+        if (this.currentPaymentType.method_slug == 'card_payment'){
+          this.purchaseWithStripeCard(orderID)
+        }
+      }
+      if(this.currentPayment.display_name == 'paypal'){
+        this.purchaseWithPaypal(orderID);
+      }
+    },
+    purchaseWithStripeCard(orderID){
+        this.stripe.createToken(this.card)
+        .then(result => {
+          if(result.error){
+            alert("Failed to create stripe card token because: " + result.error.message);
+            return;
+          }
+
+          var payload = {
+            order_id: orderID,
+            method: "stripe",
+            type: "card",
+            info: {
+              token: result.token.id,
+            },
+          }
+          axios
+          .post(`${this.backendURL}/api/v1/payments/${this.currentPayment.id}/pay` , payload , authHeader())
+          .then(response => (
+            this.data = response.data,
+            alert("Got paid Successfully")
+            ))
+          .catch(handleAxiosError);
+        })
+    },
+    checkStripeCard(name , type , enabled){
+      if (enabled && name == "stripe" && type == "card_payment"){
+        return true;
+      }
+      return false;
+    },
+    purchaseWithPaypal(orderID) {
+      var payload = {
+            order_id: orderID,
+            method: "paypal",
+          }
+      axios
+          .post(`${this.backendURL}/api/v1/payments/${this.currentPayment.id}/pay` , payload , authHeader())
+          .then(response => (
+            this.data = response.data,
+            alert(`Got Paid Successfully!`)
+            ))
+          .catch(handleAxiosError);
+    },
+    setCurrentPaymentType(checked , type){
+      if (checked){
+        this.currentPaymentType = type;
+      }else{
+        this.currentPaymentType = {};
+      }
     },
     processShippingAddress(){
       var nameArr = this.shipping_address.name.split(" ");
@@ -212,18 +318,18 @@ export default {
                   <p class="card-title-desc">Fill all information below</p>
 
                   <div>
-                    <div class="custom-control custom-radio custom-control-inline mr-4">
+                    <div class="custom-control custom-radio custom-control-inline mr-4" v-for="payment in paymentData" :key="payment.id" @click="currentPayment = payment">
                       <input
-                        id="customRadioInline1"
+                        :id="payment.id"
                         type="radio"
-                        name="customRadioInline1"
+                        :name="payment.display_name"
                         class="custom-control-input"
                       />
-                      <label class="custom-control-label" for="customRadioInline1">
-                        <i class="fab fa-cc-mastercard mr-1 font-size-20 align-top"></i> Credit / Debit Card
+                      <label class="custom-control-label" :for="payment.id">
+                        <i class="fab fa-cc-mastercard mr-1 font-size-20 align-top"></i> {{payment.on_screen_name}}
                       </label>
                     </div>
-                    <div class="custom-control custom-radio custom-control-inline mr-4">
+                    <!-- <div class="custom-control custom-radio custom-control-inline mr-4">
                       <input
                         id="customRadioInline2"
                         type="radio"
@@ -245,10 +351,28 @@ export default {
                       <label class="custom-control-label" for="customRadioInline3">
                         <i class="far fa-money-bill-alt mr-1 font-size-20 align-top"></i> Cash on Delivery
                       </label>
-                    </div>
+                    </div> -->
                   </div>
 
-                  <h5 class="mt-5 mb-3 font-size-15">For card Payment</h5>
+                   <div v-for="payment in paymentData" :key="payment.id">
+                     <div v-for="type in payment.types" :key="type.method_slug" v-bind:value="type.method_slug">
+                      <div id="card-element" v-if="checkStripeCard(payment.display_name , type.method_slug, type.enabled)">
+                      </div>
+                      <!-- <b-form-checkbox v-if="type.enabled" @change="(v)=>setCurrentPaymentType(v, type)" class="custom-checkbox custom-checkbox-primary"></b-form-checkbox> -->
+                      <b-card-text v-if="payment.display_name == 'paypal'">
+                          <div class="col-sm-12">
+                            <b-button variant="primary">
+                                <i class="bx bx-check-double font-size-16 align-middle mr-2"></i>
+                                Pay With Paypal
+                            </b-button>
+                          </div>
+                      </b-card-text>
+                    </div>
+                    
+                   </div>
+                   
+
+                  <!-- <h5 class="mt-5 mb-3 font-size-15">For card Payment</h5>
                   <div class="p-4 border">
                     <form>
                       <b-form-group
@@ -294,7 +418,7 @@ export default {
                         </b-col>
                       </b-row>
                     </form>
-                  </div>
+                  </div> -->
                 </div>
               </div>
             </div>
