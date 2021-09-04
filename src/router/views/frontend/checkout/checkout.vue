@@ -20,6 +20,7 @@ export default {
   data() {
     return {
       backendURL: process.env.VUE_APP_BACKEND_URL,
+      cart: {total:{} , products:[]},
       title: "Checkout",
       stepShipping: 'shipping',
       stepBilling: 'billing',
@@ -59,6 +60,7 @@ export default {
     this.step = this.stepShipping;
     this.fetchAllowedCountries();
     this.fetchPaymentMethods();
+    this.fetchCart();
   },
   methods: {
     fetchAllowedCountries(){
@@ -180,11 +182,20 @@ export default {
       if (this.selectedCountry.name){
         this.shipping_address.country = this.selectedCountry.name;
       }
-      
-      window.console.log(this.step);
-      window.console.log(this.shipping_address);
       this.step = this.stepBilling;
-    }
+    },
+    processBillingInfo(){
+      this.step = this.stepCheckout;
+    },
+    fetchCart(){
+      axios
+      .get(`${this.backendURL}/api/v1/carts`, authHeader())
+      .then(response => {
+        this.cart = response.data.data;
+
+      })
+      .catch(handleAxiosError);
+    },
   }
 };
 </script>
@@ -391,8 +402,6 @@ export default {
                     
                    <!-- </div> -->
                    
-
-
                 </div>
               </div>
             </div>
@@ -409,9 +418,9 @@ export default {
               <!-- end col -->
               <div class="col-sm-6">
                 <div class="text-sm-right">
-                  <router-link tag="a" to="/ecommerce/checkout" class="btn btn-success">
-                    <i class="mdi mdi-truck-fast mr-1"></i> Proceed to Shipping
-                  </router-link>
+                  <div class="btn btn-success" v-on:click="processBillingInfo">
+                    <i class="mdi mdi-truck-fast mr-1"></i> Proceed to Confirmation
+                  </div>
                 </div>
               </div>
               <!-- end col -->
@@ -440,10 +449,10 @@ export default {
                           </tr>
                         </thead>
                         <tbody>
-                          <tr>
+                          <tr v-for="product in cart.products" :key="product.cart_id">
                             <th scope="row">
                               <img
-                                src="@/assets/images/product/img-1.png"
+                                :src="product.image"
                                 alt="product-img"
                                 title="product-img"
                                 class="avatar-md"
@@ -453,47 +462,33 @@ export default {
                               <h5 class="font-size-14 text-truncate">
                                 <router-link
                                   tag="a"
-                                  to="/ecommerce/product-detail"
+                                  :to="`/product/${product.id}`"
                                   class="text-dark"
-                                >Half sleeve T-shirt (64GB)</router-link>
+                                >{{product.name}}</router-link>
                               </h5>
-                              <p class="text-muted mb-0">$ 450 x 1</p>
+                              <p class="text-muted mb-0">$ {{product.price}} x {{product.quantity}}</p>
                             </td>
-                            <td>$ 450</td>
-                          </tr>
-                          <tr>
-                            <th scope="row">
-                              <img
-                                src="@/assets/images/product/img-7.png"
-                                alt="product-img"
-                                title="product-img"
-                                class="avatar-md"
-                              />
-                            </th>
-                            <td>
-                              <h5 class="font-size-14 text-truncate">
-                                <router-link
-                                  tag="a"
-                                  to="/ecommerce/product-detail"
-                                  class="text-dark"
-                                >Wirless Headphone</router-link>
-                              </h5>
-                              <p class="text-muted mb-0">$ 225 x 1</p>
-                            </td>
-                            <td>$ 225</td>
+                            <td>$ {{product.total}}</td>
                           </tr>
                           <tr>
                             <td colspan="2">
                               <h6 class="m-0 text-right">Sub Total:</h6>
                             </td>
-                            <td>$ 675</td>
+                            <td>$ {{cart.total.total}}</td>
+                          </tr>
+                          <tr>
+                            <td colspan="2">
+                              <h6 class="m-0 text-right">Discount:</h6>
+                            </td>
+                            <td>$ {{cart.total.discount}}</td>
                           </tr>
                           <tr>
                             <td colspan="3">
                               <div class="bg-soft-primary p-3 rounded">
                                 <h5 class="font-size-14 text-primary mb-0">
                                   <i class="fas fa-shipping-fast mr-2"></i> Shipping
-                                  <span class="float-right">Free</span>
+                                  <span class="float-right" v-if="cart.total.shipping_charge < 1">Free</span>
+                                  <span class="float-right" v-else>{{cart.total.shipping_charge}}</span>
                                 </h5>
                               </div>
                             </td>
@@ -502,7 +497,7 @@ export default {
                             <td colspan="2">
                               <h6 class="m-0 text-right">Total:</h6>
                             </td>
-                            <td>$ 675</td>
+                            <td>$ {{cart.total.grand_total}}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -526,7 +521,7 @@ export default {
               <div class="col-sm-6">
                 <div class="text-sm-right">
                   <router-link tag="a" to="/ecommerce/checkout" class="btn btn-success">
-                    <i class="mdi mdi-truck-fast mr-1"></i> Proceed to Shipping
+                    <i class="mdi mdi-truck-fast mr-1"></i> Place Order
                   </router-link>
                 </div>
               </div>
