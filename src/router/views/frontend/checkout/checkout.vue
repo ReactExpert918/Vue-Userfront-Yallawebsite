@@ -318,7 +318,7 @@ export default {
                   <p class="card-title-desc">Fill all information below</p>
 
                   <div>
-                    <div class="custom-control custom-radio custom-control-inline mr-4" v-for="payment in paymentData" :key="payment.id" @click="currentPayment = payment">
+                    <!-- <div class="custom-control custom-radio custom-control-inline mr-4" v-for="payment in paymentData" :key="payment.id" @click="currentPayment = payment">
                       <input
                         :id="payment.id"
                         type="radio"
@@ -328,7 +328,27 @@ export default {
                       <label class="custom-control-label" :for="payment.id">
                         <i class="fab fa-cc-mastercard mr-1 font-size-20 align-top"></i> {{payment.on_screen_name}}
                       </label>
-                    </div>
+                    </div> -->
+                     <b-tabs pills horizontal nav-class="p-0" nav-wrapper-class="col-sm-6" content-class="pt-0 px-2 text-muted">
+                        <b-tab v-for="payment in paymentData" :key="payment.id" :title="payment.on_screen_name" active title-item-class="mb-2" @click="currentPayment = payment">
+                          <!-- <b-card-text> -->
+                            <!-- <div class="row"> -->
+                              <div v-for="type in payment.types" :key="type.method_slug" v-bind:value="type.method_slug">
+                                <div id="card-element" v-if="checkStripeCard(payment.display_name , type.method_slug, type.enabled)">
+                                </div>
+                                <b-form-checkbox v-if="type.enabled" @change="(v)=>setCurrentPaymentType(v, type)" class="custom-checkbox custom-checkbox-primary"></b-form-checkbox>
+                              </div>
+
+                              <b-card-text v-if="payment.display_name == 'paypal'">
+                                <div class="col-sm-12">
+                                  <b-button variant="primary">
+                                      <i class="bx bx-check-double font-size-16 align-middle mr-2"></i>
+                                      Pay With Paypal
+                                  </b-button>
+                                </div>
+                              </b-card-text>>
+                        </b-tab>
+                     </b-tabs>
                     <!-- <div class="custom-control custom-radio custom-control-inline mr-4">
                       <input
                         id="customRadioInline2"
@@ -354,71 +374,25 @@ export default {
                     </div> -->
                   </div>
 
-                   <div v-for="payment in paymentData" :key="payment.id">
+                   <!-- <div v-for="payment in paymentData" :key="payment.id">
                      <div v-for="type in payment.types" :key="type.method_slug" v-bind:value="type.method_slug">
                       <div id="card-element" v-if="checkStripeCard(payment.display_name , type.method_slug, type.enabled)">
-                      </div>
+                      </div> -->
                       <!-- <b-form-checkbox v-if="type.enabled" @change="(v)=>setCurrentPaymentType(v, type)" class="custom-checkbox custom-checkbox-primary"></b-form-checkbox> -->
-                      <b-card-text v-if="payment.display_name == 'paypal'">
+                      <!-- <b-card-text v-if="payment.display_name == 'paypal'">
                           <div class="col-sm-12">
                             <b-button variant="primary">
                                 <i class="bx bx-check-double font-size-16 align-middle mr-2"></i>
                                 Pay With Paypal
                             </b-button>
                           </div>
-                      </b-card-text>
-                    </div>
+                      </b-card-text> -->
+                    <!-- </div> -->
                     
-                   </div>
+                   <!-- </div> -->
                    
 
-                  <!-- <h5 class="mt-5 mb-3 font-size-15">For card Payment</h5>
-                  <div class="p-4 border">
-                    <form>
-                      <b-form-group
-                        id="input-group-2"
-                        label="Card Number"
-                        label-for="input-card"
-                        class="mb-0"
-                      >
-                        <b-form-input id="input-card" placeholder="0000 0000 0000 0000"></b-form-input>
-                      </b-form-group>
 
-                      <b-row class="mt-4">
-                        <b-col lg="6">
-                          <b-form-group
-                            id="input-group-2"
-                            label="Name on card"
-                            label-for="input-number"
-                            class="mb-0"
-                          >
-                            <b-form-input id="input-number" placeholder="Name on Card"></b-form-input>
-                          </b-form-group>
-                        </b-col>
-                        <b-col lg="3">
-                          <b-form-group
-                            id="input-group-2"
-                            label="Expiry date"
-                            label-for="input-date"
-                            class="mb-0"
-                          >
-                            <b-form-input id="input-date" placeholder="MM/YY"></b-form-input>
-                          </b-form-group>
-                        </b-col>
-
-                        <b-col lg="3">
-                          <b-form-group
-                            id="input-group-2"
-                            label="CVV Code"
-                            label-for="cvvcodeInput"
-                            class="mb-0"
-                          >
-                            <b-form-input id="cvvcodeInput" placeholder="Enter CVV Code"></b-form-input>
-                          </b-form-group>
-                        </b-col>
-                      </b-row>
-                    </form>
-                  </div> -->
                 </div>
               </div>
             </div>
