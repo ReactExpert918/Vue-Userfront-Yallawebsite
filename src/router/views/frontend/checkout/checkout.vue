@@ -50,9 +50,10 @@ export default {
         email: "",
         phone: "",
         address: "",
-        country: "",
+        country_id: "",
         state: "",
         city: "",
+        postcode:"",
       }
     };
   },
@@ -63,6 +64,19 @@ export default {
     this.fetchCart();
   },
   methods: {
+    checkout(){
+      this.shipping_address.country_id = this.selectedCountry.id;
+      const payload = {
+        address: this.shipping_address,
+        additional_instruction: this.additional_instruction,
+      }
+      axios
+      .post(`${this.backendURL}/api/v1/carts/checkout`,payload, authHeader())
+      .then(response => {
+        alert(`Checkout Successful: ${response.data.data.id}`);
+      })
+      .catch(handleAxiosError);
+    },
     fetchAllowedCountries(){
       axios
       .get(`${this.backendURL}/api/v1/areas/countries`, authHeader())
@@ -270,6 +284,12 @@ export default {
                     <label class="col-md-2 col-form-label">State</label>
                     <div class="col-md-10">
                       <b-form-input id="state" placeholder="Enter your State" v-model="shipping_address.state"></b-form-input>
+                    </div>
+                  </div>
+                  <div class="form-group row mb-4">
+                    <label class="col-md-2 col-form-label">Postcode</label>
+                    <div class="col-md-10">
+                      <b-form-input id="postcode" placeholder="Enter your postcode" v-model="shipping_address.postcode"></b-form-input>
                     </div>
                   </div>
                   <div class="form-group row mb-4">
@@ -520,9 +540,9 @@ export default {
               <!-- end col -->
               <div class="col-sm-6">
                 <div class="text-sm-right">
-                  <router-link tag="a" to="/ecommerce/checkout" class="btn btn-success">
+                  <div  class="btn btn-success" v-on:click="checkout">
                     <i class="mdi mdi-truck-fast mr-1"></i> Place Order
-                  </router-link>
+                  </div>
                 </div>
               </div>
               <!-- end col -->
