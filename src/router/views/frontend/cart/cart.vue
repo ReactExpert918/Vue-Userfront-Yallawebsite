@@ -103,7 +103,12 @@ export default {
                         <span class="font-weight-medium">{{option.value}}</span>
                       </p>
                     </td>
-                    <td>$ {{product.price}}</td>
+                    <td>
+                      <span class="text-muted mr-2" v-if="product.discounted_price < product.price">
+                          <del>${{product.price}}</del>
+                      </span>
+                      ${{product.discounted_price}}
+                    </td>
                     <td>{{product.quantity}}</td>
                     <td>$ {{product.total}}</td>
                     <td>

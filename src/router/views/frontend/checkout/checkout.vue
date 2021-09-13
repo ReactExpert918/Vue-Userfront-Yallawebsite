@@ -486,7 +486,12 @@ export default {
                                   class="text-dark"
                                 >{{product.name}}</router-link>
                               </h5>
-                              <p class="text-muted mb-0">$ {{product.price}} x {{product.quantity}}</p>
+                              <p class="text-muted mb-0">
+                                <span class="text-muted mr-2" v-if="product.discounted_price < product.price">
+                                  <del>${{product.price}}</del>
+                                </span>
+                                ${{product.discounted_price}} x {{product.quantity}}
+                              </p>
                             </td>
                             <td>$ {{product.total}}</td>
                           </tr>
@@ -494,7 +499,7 @@ export default {
                             <td colspan="2">
                               <h6 class="m-0 text-right">Sub Total:</h6>
                             </td>
-                            <td>$ {{cart.total.total}}</td>
+                            <td>$ {{cart.total.grand_total}}</td>
                           </tr>
                           <tr>
                             <td colspan="2">
@@ -517,7 +522,7 @@ export default {
                             <td colspan="2">
                               <h6 class="m-0 text-right">Total:</h6>
                             </td>
-                            <td>$ {{cart.total.grand_total}}</td>
+                            <td>$ {{cart.total.total}}</td>
                           </tr>
                         </tbody>
                       </table>
