@@ -74,6 +74,7 @@ export default {
       .post(`${this.backendURL}/api/v1/carts/checkout`,payload, authHeader())
       .then(response => {
         alert(`Checkout Successful: ${response.data.data.id}`);
+        this.purchase(response.data.data.id);
       })
       .catch(handleAxiosError);
     },
