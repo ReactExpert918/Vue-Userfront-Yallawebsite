@@ -2,8 +2,9 @@
 import Layout from "../../../../layouts/main";
 import PageHeader from "@/components/page-header";
 import appConfig from "@/app.config";
-import { ordersData, globalData } from "./orders-data";
 import axios from "axios";
+import {authHeader} from "@/helpers/authservice/auth-header";
+import {handleAxiosError} from "@/helpers/authservice/user.service";
 
 /**
  * Product-checkout Component
@@ -16,8 +17,8 @@ export default {
   components: { Layout, PageHeader },
   data() {
     return {
-      ordersData: ordersData,
-      globalData: globalData,
+      backendURL: process.env.VUE_APP_BACKEND_URL,
+      ordersData: [],
       stateValue: null,
       countryValue: null,
       //slider
@@ -47,12 +48,12 @@ export default {
       fields: [
           {
               label: "Order Date",
-              key: "orderDate",
+              key: "created_at",
               sortable: true,
           },
           {
               label: "Order Number",
-              key: "orderNumber",
+              key: "order_hash",
               sortable: true,
           },
           {
@@ -61,7 +62,6 @@ export default {
               sortable: true,
           },
           {
-              label: "Order Status",
               key: "status",
               sortable: true,
           },
@@ -91,17 +91,15 @@ export default {
     }
   },
   mounted() {
-      // Set the initial number of items
-      this.totalRows = this.items.length;
+      this.fetchOrders()
+  },
+  methods: {
+    fetchOrders(){
       axios
-          .get("http://dummy.restapiexample.com/api/v1/employees", {
-              headers: {
-                  "Content-type": "application/json;charset=utf-8",
-              },
-          })
-          .then((res) => {
-              return res;
-          });
+      .get(`${this.backendURL}/api/v1/orders?per_page=${this.perPage}&page=${this.currentPage}` , authHeader())
+      .then(response => (this.ordersData = response.data.data)
+      .catch(handleAxiosError));
+    }
   }
 };
 </script>
@@ -146,15 +144,15 @@ export default {
                       @filtered="onFiltered"
                     >
                       <template #cell(status)="data">
-                        <span class="badge badge-success font-size-12">
-                          {{data.item.status}}
+                        <span :class= "[`badge badge-${data.item.status.badge} font-size-12`]">
+                          <span>{{data.item.status.status}}</span>
                         </span>
                       </template>
-                      <template #cell(orderNumber)="data">
-                          <a href="#">{{data.item.orderNumber}}</a>
+                      <template #cell(order_hash)="data">
+                          <a href="#">{{data.item.order_hash}}</a>
                       </template>
                       <template #cell(total)="data">
-                          {{globalData[0].currencySymbol}}{{data.item.total}}
+                          {{data.item.currency_symbol}}{{data.item.total}}
                       </template>
                       <template #cell(actions)>
                          <b-button variant="primary" href="#">View Order</b-button>
