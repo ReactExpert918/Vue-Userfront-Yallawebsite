@@ -3,6 +3,10 @@ import Layout from "../../../../layouts/main";
 import PageHeader from "@/components/page-header";
 import appConfig from "@/app.config";
 
+import axios from 'axios';
+import {authHeader} from "@/helpers/authservice/auth-header";
+import {handleAxiosError} from "@/helpers/authservice/user.service";
+
 
 /**
  * Product-checkout Component
@@ -15,6 +19,10 @@ export default {
   components: { Layout, PageHeader },
   data() {
     return {
+      backendURL: process.env.VUE_APP_BACKEND_URL,
+      customer: {},
+      password: "",
+      passwordConfirm: "",
       stateValue: null,
       countryValue: null,
       //slider
@@ -33,6 +41,36 @@ export default {
       ],
     };
   },
+  mounted(){
+    this.fetchCustomer();
+  },
+  methods: {
+    fetchCustomer(){
+      axios
+      .get(`${this.backendURL}/api/v1/customers`, authHeader())
+      .then(response => {
+        this.customer = response.data.data;
+      })
+      .catch(handleAxiosError);
+    },
+    updateCustomer(){
+
+      const payload = {
+        first_name: this.customer.first_name,
+        last_name: this.customer.last_name,
+        email: this.customer.email,
+        password: this.password,
+        password_confirmation: this.passwordConfirm,
+      }
+
+      axios
+      .put(`${this.backendURL}/api/v1/customers` , payload , authHeader())
+      .then(response => (
+        this.data = response.data,
+        alert("Customers Updated Successfully!")))
+      .catch(handleAxiosError);
+    }
+  }
 };
 </script>
 
@@ -45,7 +83,7 @@ export default {
           <div class="card-body">
             <h5>General</h5>
             <div class="row mb-0">
-              <div class="col-md-2">
+              <!-- <div class="col-md-2">
                 <label class="col-form-label">Title</label>
                 <select class="custom-select">
                   <option selected>Title</option>
@@ -54,26 +92,37 @@ export default {
                   <option value="3">Mrs</option>
                   <option value="4">Miss</option>
                 </select>
-              </div>
+              </div> -->
               <div class="col-md-2">
                 <label class="col-form-label">First Name</label>
-                <b-form-input for="text" value=""></b-form-input>
+                <b-form-input for="text"  v-model="customer.first_name"></b-form-input>
               </div>
               <div class="col-md-2">
                 <label class="col-form-label">Last Name</label>
-                <b-form-input for="text" value=""></b-form-input>
+                <b-form-input for="text"  v-model="customer.last_name"></b-form-input>
               </div>
               <div class="col-md-3">
                 <label class="col-form-label">Email</label>
-                <b-form-input for="text" value=""></b-form-input>
+                <b-form-input for="text" v-model="customer.email"></b-form-input>
               </div>
-              <div class="col-md-3">
+              <!-- <div class="col-md-3">
                 <label class="col-form-label">Contact Number</label>
                 <b-form-input for="text" value=""></b-form-input>
+              </div> -->
+            </div>
+            <h5 class="mt-3">Security</h5>
+            <div class="row mb-0">
+              <div class="col-md-2">
+                <label class="col-form-label">New Password</label>
+                <b-form-input for="text"  v-model="password"></b-form-input>
+              </div>
+              <div class="col-md-2">
+                <label class="col-form-label">Password Confirmation</label>
+                <b-form-input for="text"  v-model="passwordConfirm"></b-form-input>
               </div>
             </div>
-            <h5 class="mt-3">Contact Address</h5>
-            <div class="row mb-0">
+            <!-- <h5 class="mt-3">Contact Address</h5> -->
+            <!-- <div class="row mb-0">
               <div class="col-md-3">
                 <label class="col-form-label">Country</label>
                 <select class="custom-select">
@@ -100,8 +149,8 @@ export default {
                 <label class="col-form-label">Zip / Postal Code</label>
                 <b-form-input for="text" value=""></b-form-input>
               </div>
-            </div>
-            <b-button class="mt-3" variant="primary">Save</b-button>
+            </div> -->
+            <b-button class="mt-3" variant="primary" v-on:click="updateCustomer">Save</b-button>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@
 import Layout from "../../../../layouts/main";
 import PageHeader from "@/components/page-header";
 import appConfig from "@/app.config";
+import {getLoggedInCustomer} from "@/helpers/authservice/user.service";
 
 
 /**
@@ -15,6 +16,7 @@ export default {
   components: { Layout, PageHeader },
   data() {
     return {
+      customer: {},
       stateValue: null,
       countryValue: null,
       //slider
@@ -28,6 +30,9 @@ export default {
       ]
     };
   },
+  mounted(){
+    this.customer = getLoggedInCustomer();
+  }
 };
 </script>
 
@@ -39,7 +44,7 @@ export default {
         <div class="card">
           <div class="card-body text-center">
             <label class="card-title">My Account</label>
-            <p>Hello Customer</p>
+            <p>Hello {{customer.first_name}} {{customer.last_name}}</p>
             <b-button type="submit" variant="secondary" class="">Logout</b-button>
           </div>
         </div>
