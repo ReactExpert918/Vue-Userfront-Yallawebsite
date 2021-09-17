@@ -2,7 +2,10 @@
 import Layout from "../../../../layouts/main";
 import PageHeader from "@/components/page-header";
 import appConfig from "@/app.config";
-import { addressesData } from "./addresses-data";
+
+import axios from 'axios';
+import {authHeader} from "@/helpers/authservice/auth-header";
+import {handleAxiosError} from "@/helpers/authservice/user.service";
 
 export default {
   page: {
@@ -12,7 +15,9 @@ export default {
   components: { Layout, PageHeader },
   data() {
     return {
-      addressesData: addressesData,
+      backendURL: process.env.VUE_APP_BACKEND_URL,
+      addressesData: {billing_addresses: [] , shipping_addresses: []},
+      currentAddress: {},
       stateValue: null,
       countryValue: null,
       //slider
@@ -31,6 +36,19 @@ export default {
       ]
     };
   },
+  mounted(){
+    this.fetchCustomerAddresses();
+  },
+  methods: {
+    fetchCustomerAddresses(){
+      axios
+      .get(`${this.backendURL}/api/v1/customers/address`, authHeader())
+      .then(response => {
+        this.addressesData = response.data.data;
+      })
+      .catch(handleAxiosError);
+    }
+  }
 };
 </script>
 
@@ -51,21 +69,19 @@ export default {
           </div>
         </div>
       </div>
-      <div class="col-lg-4" v-for="address in addressesData" :key="address.id">
+      <div class="col-lg-4" v-for="address in addressesData.shipping_addresses" :key="address">
         <div class="card">
           <div class="card-body p-5">
             <p>
-              <span v-if="address.isDefaultShipping === true" class="text-success mr-3"><i class="bx bx-check-double"></i> Default Shipping</span>
+              <span v-if="address.default_shipping_address === true" class="text-success mr-3"><i class="bx bx-check-double"></i> Default Shipping</span>
             </p>
             <p>
-            {{address.firstName}} {{address.lastName}}<br>
-            {{address.addressLine1}}<br>
-            {{address.addressLine2}}<br>
+            {{address.first_name}} {{address.last_name}}<br>
+            {{address.street}}<br>
             {{address.city}}<br>
-            {{address.zipPostal}}<br>
-            {{address.phoneNumber}}<br>
+            {{address.postcode}}<br>
             </p>
-            <b-button v-b-modal.modal-edit-address variant="secondary" class="mr-2">Edit</b-button>
+            <b-button v-b-modal.modal-edit-address variant="secondary" class="mr-2" v-on:click="currentAddress = address">Edit</b-button>
           </div>
         </div>
       </div>
@@ -84,10 +100,10 @@ export default {
           <label class="mt-3">Address Line 1</label>
           <b-form-input for="text" value=""></b-form-input>
         </div>
-        <div class="col-sm-6">
+        <!-- <div class="col-sm-6">
           <label class="mt-3">Address Line 2</label>
           <b-form-input for="text" value=""></b-form-input>
-        </div>
+        </div> -->
         <div class="col-sm-6">
           <label class="mt-3">City</label>
           <b-form-input for="text" value=""></b-form-input>
@@ -96,10 +112,10 @@ export default {
           <label class="mt-3">Postcode</label>
           <b-form-input for="text" value=""></b-form-input>
         </div>
-        <div class="col-sm-6">
+        <!-- <div class="col-sm-6">
           <label class="mt-3">Phone Number</label>
           <b-form-input for="text" value=""></b-form-input>
-        </div>
+        </div> -->
         <div class="col-sm-6">
           <label class="mt-3">Default Shipping</label>
           <b-form-checkbox switch size="lg" v-model="lgchecked"></b-form-checkbox>
@@ -117,35 +133,35 @@ export default {
       <div class="row">
         <div class="col-sm-6">
           <label class="mt-3">First Name</label>
-          <b-form-input for="text" value=""></b-form-input>
+          <b-form-input for="text" v-model="currentAddress.first_name"></b-form-input>
         </div>
         <div class="col-sm-6">
           <label class="mt-3">Last Name</label>
-          <b-form-input for="text" value=""></b-form-input>
+          <b-form-input for="text" v-model="currentAddress.last_name"></b-form-input>
         </div>
         <div class="col-sm-6">
           <label class="mt-3">Address Line 1</label>
-          <b-form-input for="text" value=""></b-form-input>
+          <b-form-input for="text" v-model="currentAddress.street"></b-form-input>
         </div>
-        <div class="col-sm-6">
+        <!-- <div class="col-sm-6">
           <label class="mt-3">Address Line 2</label>
           <b-form-input for="text" value=""></b-form-input>
-        </div>
+        </div> -->
         <div class="col-sm-6">
           <label class="mt-3">City</label>
-          <b-form-input for="text" value=""></b-form-input>
+          <b-form-input for="text" v-model="currentAddress.city"></b-form-input>
         </div>
         <div class="col-sm-6">
           <label class="mt-3">Postcode</label>
-          <b-form-input for="text" value=""></b-form-input>
+          <b-form-input for="text" v-model="currentAddress.postcode"></b-form-input>
         </div>
-        <div class="col-sm-6">
+        <!-- <div class="col-sm-6">
           <label class="mt-3">Phone Number</label>
           <b-form-input for="text" value=""></b-form-input>
-        </div>
+        </div> -->
         <div class="col-sm-6">
           <label class="mt-3">Default Shipping</label>
-          <b-form-checkbox switch size="lg" v-model="lgchecked"></b-form-checkbox>
+          <b-form-checkbox switch size="lg" v-model="currentAddress.default_shipping_address"></b-form-checkbox>
         </div>
       </div>
       <br>
