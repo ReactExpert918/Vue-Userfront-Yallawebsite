@@ -47,6 +47,20 @@ export default {
         this.addressesData = response.data.data;
       })
       .catch(handleAxiosError);
+    },
+    updateCustomerAddresses(){
+
+      const payload = {
+        shipping_addresses: this.addressesData.shipping_addresses,
+      }
+
+      axios
+      .put(`${this.backendURL}/api/v1/customers`,payload ,  authHeader())
+      .then(response => {
+        this.data = response.data;
+        alert("Address Updated Successfully!");
+      })
+      .catch(handleAxiosError);
     }
   }
 };
@@ -166,7 +180,7 @@ export default {
       </div>
       <br>
       <div class="text-sm-right">
-        <b-button variant="primary">
+        <b-button variant="primary" v-on:click="updateCustomerAddresses">
             <i class="bx bx-check-double font-size-16 align-middle mr-2"></i>
             Save
         </b-button>
