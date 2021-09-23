@@ -85,6 +85,7 @@ export default {
     addNewAddress(){
       if (this.selectedCountry.id != ""){
         this.newAddress.country_id = this.selectedCountry.id;
+        this.newAddress.country = this.selectedCountry.name;
       }
       this.addressesData.shipping_addresses.push(this.newAddress);
       this.updateCustomerAddresses();
