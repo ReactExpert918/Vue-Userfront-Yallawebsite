@@ -19,7 +19,18 @@ export default {
       addressesData: {billing_addresses: [] , shipping_addresses: []},
       currentAddress: {},
       stateValue: null,
-      countryValue: null,
+      selectedCountry: {},
+      countries: [],
+      newAddress: {
+        first_name: "",
+        last_name: "",
+        country_id: "",
+        street: "",
+        city: "",
+        postcode: "",
+        state: "",
+        default_shipping_address: false,
+      },
       //slider
       slide: 0,
       sliding: null,
@@ -38,6 +49,7 @@ export default {
   },
   mounted(){
     this.fetchCustomerAddresses();
+    this.fetchAllowedCountries();
   },
   methods: {
     fetchCustomerAddresses(){
@@ -61,6 +73,21 @@ export default {
         alert("Address Updated Successfully!");
       })
       .catch(handleAxiosError);
+    },
+    fetchAllowedCountries(){
+      axios
+      .get(`${this.backendURL}/api/v1/areas/countries`, authHeader())
+      .then(response => {
+        this.countries = response.data.data;
+      })
+      .catch(handleAxiosError);
+    },
+    addNewAddress(){
+      if (this.selectedCountry.id != ""){
+        this.newAddress.country_id = this.selectedCountry.id;
+      }
+      this.addressesData.shipping_addresses.push(this.newAddress);
+      this.updateCustomerAddresses();
     }
   }
 };
@@ -93,6 +120,8 @@ export default {
             {{address.first_name}} {{address.last_name}}<br>
             {{address.street}}<br>
             {{address.city}}<br>
+            {{address.country}}<br>
+            {{address.state}}<br>
             {{address.postcode}}<br>
             </p>
             <b-button v-b-modal.modal-edit-address variant="secondary" class="mr-2" v-on:click="currentAddress = address">Edit</b-button>
@@ -104,27 +133,37 @@ export default {
       <div class="row">
         <div class="col-sm-6">
           <label class="mt-3">First Name</label>
-          <b-form-input for="text" value=""></b-form-input>
+          <b-form-input for="text" v-model="newAddress.first_name"></b-form-input>
         </div>
         <div class="col-sm-6">
           <label class="mt-3">Last Name</label>
-          <b-form-input for="text" value=""></b-form-input>
+          <b-form-input for="text" v-model="newAddress.last_name"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Address Line 1</label>
-          <b-form-input for="text" value=""></b-form-input>
+          <label class="mt-3">Address Line</label>
+          <b-form-input for="text" v-model="newAddress.street"></b-form-input>
         </div>
         <!-- <div class="col-sm-6">
           <label class="mt-3">Address Line 2</label>
           <b-form-input for="text" value=""></b-form-input>
         </div> -->
         <div class="col-sm-6">
+          <label class="mt-3">Country</label>
+          <select class="custom-select custom-select-sm" v-model="selectedCountry">
+            <option v-for="country in countries" v-bind:value="country" :key="country.id">{{country.name}}</option>
+          </select>
+        </div>
+        <div class="col-sm-6">
+          <label class="mt-3">State</label>
+          <b-form-input for="text" v-model="newAddress.state"></b-form-input>
+        </div>
+        <div class="col-sm-6">
           <label class="mt-3">City</label>
-          <b-form-input for="text" value=""></b-form-input>
+          <b-form-input for="text" v-model="newAddress.city"></b-form-input>
         </div>
         <div class="col-sm-6">
           <label class="mt-3">Postcode</label>
-          <b-form-input for="text" value=""></b-form-input>
+          <b-form-input for="text" v-model="newAddress.postcode"></b-form-input>
         </div>
         <!-- <div class="col-sm-6">
           <label class="mt-3">Phone Number</label>
@@ -132,12 +171,12 @@ export default {
         </div> -->
         <div class="col-sm-6">
           <label class="mt-3">Default Shipping</label>
-          <b-form-checkbox switch size="lg" v-model="lgchecked"></b-form-checkbox>
+          <b-form-checkbox switch size="lg" v-model="newAddress.default_shipping_address" ></b-form-checkbox>
         </div>
       </div>
       <br>
       <div class="text-sm-right">
-        <b-button variant="primary">
+        <b-button variant="primary" v-on:click="addNewAddress">
             <i class="bx bx-check-double font-size-16 align-middle mr-2"></i>
             Save
         </b-button>
@@ -154,7 +193,7 @@ export default {
           <b-form-input for="text" v-model="currentAddress.last_name"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Address Line 1</label>
+          <label class="mt-3">Address Line</label>
           <b-form-input for="text" v-model="currentAddress.street"></b-form-input>
         </div>
         <!-- <div class="col-sm-6">
@@ -164,6 +203,16 @@ export default {
         <div class="col-sm-6">
           <label class="mt-3">City</label>
           <b-form-input for="text" v-model="currentAddress.city"></b-form-input>
+        </div>
+        <div class="col-sm-6">
+          <label class="mt-3">Country</label>
+          <select class="custom-select custom-select-sm" v-model="currentAddress.country_id">
+            <option v-for="country in countries" v-bind:value="country.id" :key="country.id">{{country.name}}</option>
+          </select>
+        </div>
+        <div class="col-sm-6">
+          <label class="mt-3">State</label>
+          <b-form-input for="text" v-model="currentAddress.state"></b-form-input>
         </div>
         <div class="col-sm-6">
           <label class="mt-3">Postcode</label>
