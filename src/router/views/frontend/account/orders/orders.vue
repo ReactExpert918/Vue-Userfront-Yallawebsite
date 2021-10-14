@@ -98,7 +98,7 @@ export default {
       axios
       .get(`${this.backendURL}/api/v1/orders?per_page=${this.perPage}&page=${this.currentPage}` , authHeader())
       .then(response => (this.ordersData = response.data.data)
-      .catch(handleAxiosError));
+      .catch(error=> handleAxiosError(error, this)));
     }
   }
 };

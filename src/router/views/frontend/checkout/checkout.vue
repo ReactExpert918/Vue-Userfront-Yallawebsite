@@ -73,10 +73,23 @@ export default {
       axios
       .post(`${this.backendURL}/api/v1/carts/checkout`,payload, authHeader())
       .then(response => {
-        alert(`Checkout Successful: ${response.data.data.id}`);
+        this.$toast.success(`Checkout Successful: ${response.data.data.id}`, {
+          position: "top-right",
+          timeout: 5000,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          draggablePercent: 0.6,
+          showCloseButtonOnHover: false,
+          hideProgressBar: true,
+          closeButton: "button",
+          icon: true,
+          rtl: false
+        })
         this.purchase(response.data.data.id);
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchAllowedCountries(){
       axios
@@ -84,7 +97,7 @@ export default {
       .then(response => {
         this.countries = response.data.data;
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchPaymentMethods(){
       axios
@@ -105,7 +118,7 @@ export default {
             }
           }          
         })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     // Invluce stripe dynamically
     includeStripe( URL, callback ){
@@ -140,7 +153,20 @@ export default {
         this.stripe.createToken(this.card)
         .then(result => {
           if(result.error){
-            alert("Failed to create stripe card token because: " + result.error.message);
+            this.$toast.error("Failed to create stripe card token because: " + result.error.message, {
+              position: "top-right",
+              timeout: 5000,
+              closeOnClick: true,
+              pauseOnFocusLoss: true,
+              pauseOnHover: true,
+              draggable: true,
+              draggablePercent: 0.6,
+              showCloseButtonOnHover: false,
+              hideProgressBar: true,
+              closeButton: "button",
+              icon: true,
+              rtl: false
+            })
             return;
           }
 
@@ -156,9 +182,22 @@ export default {
           .post(`${this.backendURL}/api/v1/payments/${this.currentPayment.id}/pay` , payload , authHeader())
           .then(response => (
             this.data = response.data,
-            alert("Got paid Successfully")
-            ))
-          .catch(handleAxiosError);
+            this.$toast.success("Got Paid Successfully", {
+              position: "top-right",
+              timeout: 5000,
+              closeOnClick: true,
+              pauseOnFocusLoss: true,
+              pauseOnHover: true,
+              draggable: true,
+              draggablePercent: 0.6,
+              showCloseButtonOnHover: false,
+              hideProgressBar: true,
+              closeButton: "button",
+              icon: true,
+              rtl: false
+            })
+          ))
+          .catch(error=> handleAxiosError(error, this));
         })
     },
     checkStripeCard(name , type , enabled){
@@ -176,9 +215,22 @@ export default {
           .post(`${this.backendURL}/api/v1/payments/${this.currentPayment.id}/pay` , payload , authHeader())
           .then(response => (
             this.data = response.data,
-            alert(`Got Paid Successfully!`)
-            ))
-          .catch(handleAxiosError);
+            this.$toast.success("Got Paid Successfully", {
+              position: "top-right",
+              timeout: 5000,
+              closeOnClick: true,
+              pauseOnFocusLoss: true,
+              pauseOnHover: true,
+              draggable: true,
+              draggablePercent: 0.6,
+              showCloseButtonOnHover: false,
+              hideProgressBar: true,
+              closeButton: "button",
+              icon: true,
+              rtl: false
+            })
+          ))
+          .catch(error=> handleAxiosError(error, this));
     },
     setCurrentPaymentType(checked , type){
       if (checked){
@@ -209,7 +261,7 @@ export default {
         this.cart = response.data.data;
 
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
   }
 };

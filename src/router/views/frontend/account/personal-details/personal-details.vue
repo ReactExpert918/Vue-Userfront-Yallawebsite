@@ -51,7 +51,7 @@ export default {
       .then(response => {
         this.customer = response.data.data;
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     updateCustomer(){
 
@@ -67,8 +67,21 @@ export default {
       .put(`${this.backendURL}/api/v1/customers` , payload , authHeader())
       .then(response => (
         this.data = response.data,
-        alert("Customers Updated Successfully!")))
-      .catch(handleAxiosError);
+        this.$toast.success("Customers Updated Successfully!", {
+          position: "top-right",
+          timeout: 5000,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          draggablePercent: 0.6,
+          showCloseButtonOnHover: false,
+          hideProgressBar: true,
+          closeButton: "button",
+          icon: true,
+          rtl: false
+        })))
+      .catch(error=> handleAxiosError(error, this));
     }
   }
 };

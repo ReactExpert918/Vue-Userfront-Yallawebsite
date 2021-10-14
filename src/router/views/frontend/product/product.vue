@@ -73,7 +73,7 @@ export default {
           this.parseVariation();
         }
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchReviews(){
       axios
@@ -82,7 +82,7 @@ export default {
         this.reviews = response.data.data;
 
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     addToCart(){
       var variation_id = "";
@@ -98,10 +98,22 @@ export default {
       axios
       .post(`${this.backendURL}/api/v1/carts`, payload, authHeader())
       .then(response => {
-        alert(`${response.data.data.id} added to cart!`);
-
+        this.$toast.success(`${response.data.data.id} added to cart!`, {
+          position: "top-right",
+          timeout: 5000,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          draggablePercent: 0.6,
+          showCloseButtonOnHover: false,
+          hideProgressBar: true,
+          closeButton: "button",
+          icon: true,
+          rtl: false
+        })
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     notRatedStars(rating){
       if (rating > this.maxStars){

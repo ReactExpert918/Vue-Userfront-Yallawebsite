@@ -58,7 +58,7 @@ export default {
       .then(response => {
         this.addressesData = response.data.data;
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     updateCustomerAddresses(){
 
@@ -70,9 +70,22 @@ export default {
       .put(`${this.backendURL}/api/v1/customers`,payload ,  authHeader())
       .then(response => {
         this.data = response.data;
-        alert("Address Updated Successfully!");
+        this.$toast.success("Address Updated Successfully!", {
+          position: "top-right",
+          timeout: 5000,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          draggablePercent: 0.6,
+          showCloseButtonOnHover: false,
+          hideProgressBar: true,
+          closeButton: "button",
+          icon: true,
+          rtl: false
+        })
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchAllowedCountries(){
       axios
@@ -80,7 +93,7 @@ export default {
       .then(response => {
         this.countries = response.data.data;
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     addNewAddress(){
       if (this.selectedCountry.id != ""){

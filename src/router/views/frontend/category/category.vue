@@ -82,13 +82,13 @@ export default {
         this.products = response.data.data;
         this.totalProducts = response.data.pagination.total;
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchCategory(){
       axios
       .get(`${this.backendURL}/api/v1/categories/${this.$route.params.id}` , authHeader())
       .then(response => (this.category = response.data.data))
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchProductsByCategory(catID){
       this.currentCategoryID = catID;
@@ -98,7 +98,7 @@ export default {
         this.products = response.data.data;
         this.totalProducts = response.data.pagination.total;
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchProductsByFilters(){
       
@@ -125,7 +125,7 @@ export default {
           this.products = response.data.data;
           this.totalProducts = response.data.pagination.total;
         })
-        .catch(handleAxiosError);
+        .catch(error=> handleAxiosError(error, this));
 
     },
 

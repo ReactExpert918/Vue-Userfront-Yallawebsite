@@ -44,7 +44,7 @@ export default {
         this.cart = response.data.data;
 
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     removeProduct(id){
       const payload = {
@@ -57,7 +57,7 @@ export default {
         window.console.log(response.data.data);
         this.fetchCart();
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     }
   }
 }
