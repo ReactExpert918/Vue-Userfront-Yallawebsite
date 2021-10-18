@@ -47,6 +47,28 @@ export default {
       ]
     };
   },
+  computed: {
+    isDisable() {
+      if(this.newAddress.first_name == "" || this.newAddress.last_name == "" || this.newAddress.country_id == "" ||
+        this.newAddress.street == "" || this.newAddress.city == "" || this.newAddress.postcode == "" ||
+        this.newAddress.state == "") {
+        return true
+      }
+      else {
+        return false
+      }
+    },
+    isUpdateDisable() {
+      if(this.currentAddress.first_name == "" || this.currentAddress.last_name == "" || this.currentAddress.country_id == "" ||
+        this.currentAddress.street == "" || this.currentAddress.city == "" || this.currentAddress.postcode == "" ||
+        this.currentAddress.state == "") {
+        return true
+      }
+      else {
+        return false
+      }
+    }
+  },
   mounted(){
     this.fetchCustomerAddresses();
     this.fetchAllowedCountries();
@@ -146,15 +168,15 @@ export default {
     <b-modal id="modal-add-address" scrollable title="Add Address" title-class="font-18" hide-footer>
       <div class="row">
         <div class="col-sm-6">
-          <label class="mt-3">First Name</label>
+          <label class="mt-3">First Name <span class="red"> *</span></label>
           <b-form-input for="text" v-model="newAddress.first_name"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Last Name</label>
+          <label class="mt-3">Last Name <span class="red"> *</span></label>
           <b-form-input for="text" v-model="newAddress.last_name"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Address Line</label>
+          <label class="mt-3">Address Line <span class="red"> *</span></label>
           <b-form-input for="text" v-model="newAddress.street"></b-form-input>
         </div>
         <!-- <div class="col-sm-6">
@@ -162,21 +184,21 @@ export default {
           <b-form-input for="text" value=""></b-form-input>
         </div> -->
         <div class="col-sm-6">
-          <label class="mt-3">Country</label>
+          <label class="mt-3">Country <span class="red"> *</span></label>
           <select class="custom-select custom-select-sm" v-model="selectedCountry">
             <option v-for="country in countries" v-bind:value="country" :key="country.id">{{country.name}}</option>
           </select>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">State</label>
+          <label class="mt-3">State <span class="red"> *</span></label>
           <b-form-input for="text" v-model="newAddress.state"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">City</label>
+          <label class="mt-3">City <span class="red"> *</span></label>
           <b-form-input for="text" v-model="newAddress.city"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Postcode</label>
+          <label class="mt-3">Postcode <span class="red"> *</span></label>
           <b-form-input for="text" v-model="newAddress.postcode"></b-form-input>
         </div>
         <!-- <div class="col-sm-6">
@@ -190,7 +212,7 @@ export default {
       </div>
       <br>
       <div class="text-sm-right">
-        <b-button variant="primary" v-on:click="addNewAddress">
+        <b-button :disabled="isDisable" variant="primary" v-on:click="addNewAddress">
             <i class="bx bx-check-double font-size-16 align-middle mr-2"></i>
             Save
         </b-button>
@@ -199,15 +221,15 @@ export default {
     <b-modal id="modal-edit-address" scrollable title="Edit Address" title-class="font-18" hide-footer>
       <div class="row">
         <div class="col-sm-6">
-          <label class="mt-3">First Name</label>
+          <label class="mt-3">First Name <span class="red"> *</span></label>
           <b-form-input for="text" v-model="currentAddress.first_name"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Last Name</label>
+          <label class="mt-3">Last Name <span class="red"> *</span></label>
           <b-form-input for="text" v-model="currentAddress.last_name"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Address Line</label>
+          <label class="mt-3">Address Line <span class="red"> *</span></label>
           <b-form-input for="text" v-model="currentAddress.street"></b-form-input>
         </div>
         <!-- <div class="col-sm-6">
@@ -215,21 +237,21 @@ export default {
           <b-form-input for="text" value=""></b-form-input>
         </div> -->
         <div class="col-sm-6">
-          <label class="mt-3">City</label>
+          <label class="mt-3">City <span class="red"> *</span></label>
           <b-form-input for="text" v-model="currentAddress.city"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Country</label>
+          <label class="mt-3">Country <span class="red"> *</span></label>
           <select class="custom-select custom-select-sm" v-model="currentAddress.country_id">
             <option v-for="country in countries" v-bind:value="country.id" :key="country.id">{{country.name}}</option>
           </select>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">State</label>
+          <label class="mt-3">State <span class="red"> *</span></label>
           <b-form-input for="text" v-model="currentAddress.state"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Postcode</label>
+          <label class="mt-3">Postcode <span class="red"> *</span></label>
           <b-form-input for="text" v-model="currentAddress.postcode"></b-form-input>
         </div>
         <!-- <div class="col-sm-6">
@@ -243,7 +265,7 @@ export default {
       </div>
       <br>
       <div class="text-sm-right">
-        <b-button variant="primary" v-on:click="updateCustomerAddresses">
+        <b-button :disabled="isUpdateDisable" variant="primary" v-on:click="updateCustomerAddresses">
             <i class="bx bx-check-double font-size-16 align-middle mr-2"></i>
             Save
         </b-button>

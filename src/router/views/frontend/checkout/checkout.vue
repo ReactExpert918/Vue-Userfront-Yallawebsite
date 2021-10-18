@@ -57,6 +57,18 @@ export default {
       }
     };
   },
+  computed: {
+    isdisable() {
+      if(this.shipping_address.name == "" || this.shipping_address.email == "" 
+        || this.shipping_address.phone == "" || this.shipping_address.address == "" || this.shipping_address.country_id == ""
+        || this.shipping_address.state == "" || this.shipping_address.city == "" || this.shipping_address.postcode == "" ) {
+        return true
+      }
+      else {
+        return false
+      }
+    }
+  },
   mounted(){
     this.step = this.stepShipping;
     this.fetchAllowedCountries();
@@ -285,7 +297,7 @@ export default {
                 <form>
                   <b-row class="mb-4">
                     <b-col md="2">
-                      <label for="input-name">Name</label>
+                      <label for="input-name">Name <span class="red"> *</span></label>
                     </b-col>
                     <b-col md="10">
                       <b-form-input id="input-name" placeholder="Enter your name" v-model="shipping_address.name"></b-form-input>
@@ -294,7 +306,7 @@ export default {
 
                   <b-row class="mb-4">
                     <b-col md="2">
-                      <label for="billing-email-address">Email Address</label>
+                      <label for="billing-email-address">Email Address <span class="red"> *</span></label>
                     </b-col>
                     <b-col md="10">
                       <b-form-input id="billing-email-address" placeholder="Enter your email" v-model="shipping_address.email"></b-form-input>
@@ -303,7 +315,7 @@ export default {
 
                   <b-row class="mb-4">
                     <b-col md="2">
-                      <label for="billing-phone">Phone</label>
+                      <label for="billing-phone">Phone <span class="red"> *</span></label>
                     </b-col>
                     <b-col md="10">
                       <b-form-input id="billing-phone" placeholder="Enter your Phone no." v-model="shipping_address.phone"></b-form-input>
@@ -312,7 +324,7 @@ export default {
 
                   <b-row class="mb-4">
                     <b-col md="2">
-                      <label for="billing-address">Address</label>
+                      <label for="billing-address">Address <span class="red"> *</span></label>
                     </b-col>
                     <b-col md="10">
                       <b-form-textarea
@@ -325,7 +337,7 @@ export default {
                   </b-row>
 
                   <div class="form-group row mb-4">
-                    <label class="col-md-2 col-form-label">Country</label>
+                    <label class="col-md-2 col-form-label">Country <span class="red"> *</span></label>
                     <div class="col-md-10">
                       <select class="custom-select custom-select-sm" v-model="selectedCountry">
                         <option v-for="country in countries" v-bind:value="country" :key="country.id">{{country.name}}</option>
@@ -334,19 +346,19 @@ export default {
                   </div>
 
                   <div class="form-group row mb-4">
-                    <label class="col-md-2 col-form-label">State</label>
+                    <label class="col-md-2 col-form-label">State <span class="red"> *</span></label>
                     <div class="col-md-10">
                       <b-form-input id="state" placeholder="Enter your State" v-model="shipping_address.state"></b-form-input>
                     </div>
                   </div>
                   <div class="form-group row mb-4">
-                    <label class="col-md-2 col-form-label">Postcode</label>
+                    <label class="col-md-2 col-form-label">Postcode <span class="red"> *</span></label>
                     <div class="col-md-10">
                       <b-form-input id="postcode" placeholder="Enter your postcode" v-model="shipping_address.postcode"></b-form-input>
                     </div>
                   </div>
                   <div class="form-group row mb-4">
-                    <label class="col-md-2 col-form-label">City</label>
+                    <label class="col-md-2 col-form-label">City <span class="red"> *</span></label>
                     <div class="col-md-10">
                       <b-form-input id="city" placeholder="Enter your City" v-model="shipping_address.city"></b-form-input>
                     </div>
@@ -598,9 +610,9 @@ export default {
               <!-- end col -->
               <div class="col-sm-6">
                 <div class="text-sm-right">
-                  <div  class="btn btn-success" v-on:click="checkout">
+                  <button :disabled="isdisable" class="btn btn-success" v-on:click="checkout">
                     <i class="mdi mdi-truck-fast mr-1"></i> Place Order
-                  </div>
+                  </button>
                 </div>
               </div>
               <!-- end col -->

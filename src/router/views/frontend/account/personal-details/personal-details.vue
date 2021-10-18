@@ -41,6 +41,17 @@ export default {
       ],
     };
   },
+  computed: {
+    isDisable() {
+      if(this.customer.first_name == "" || this.customer.last_name == "" || this.customer.email == ""
+        || this.customer.password == "" || this.customer.passwordConfirm == "" || this.customer.password != this.customer.passwordConfirm) {
+        return true
+      }
+      else {
+        return false
+      }
+    }
+  },
   mounted(){
     this.fetchCustomer();
   },
@@ -80,7 +91,8 @@ export default {
           closeButton: "button",
           icon: true,
           rtl: false
-        })))
+        })
+        ))
       .catch(error=> handleAxiosError(error, this));
     }
   }
@@ -107,15 +119,15 @@ export default {
                 </select>
               </div> -->
               <div class="col-md-2">
-                <label class="col-form-label">First Name</label>
+                <label class="col-form-label">First Name <span class="red"> *</span></label>
                 <b-form-input for="text"  v-model="customer.first_name"></b-form-input>
               </div>
               <div class="col-md-2">
-                <label class="col-form-label">Last Name</label>
+                <label class="col-form-label">Last Name <span class="red"> *</span></label>
                 <b-form-input for="text"  v-model="customer.last_name"></b-form-input>
               </div>
               <div class="col-md-3">
-                <label class="col-form-label">Email</label>
+                <label class="col-form-label">Email <span class="red"> *</span></label>
                 <b-form-input for="text" v-model="customer.email"></b-form-input>
               </div>
               <!-- <div class="col-md-3">
@@ -126,11 +138,11 @@ export default {
             <h5 class="mt-3">Security</h5>
             <div class="row mb-0">
               <div class="col-md-2">
-                <label class="col-form-label">New Password</label>
+                <label class="col-form-label">New Password <span class="red"> *</span></label>
                 <b-form-input for="text"  v-model="password"></b-form-input>
               </div>
               <div class="col-md-2">
-                <label class="col-form-label">Password Confirmation</label>
+                <label class="col-form-label">Password Confirmation <span class="red"> *</span></label>
                 <b-form-input for="text"  v-model="passwordConfirm"></b-form-input>
               </div>
             </div>
@@ -163,7 +175,7 @@ export default {
                 <b-form-input for="text" value=""></b-form-input>
               </div>
             </div> -->
-            <b-button class="mt-3" variant="primary" v-on:click="updateCustomer">Save</b-button>
+            <b-button class="mt-3" :disabled="isDisable" variant="primary" v-on:click="updateCustomer">Save</b-button>
           </div>
         </div>
       </div>

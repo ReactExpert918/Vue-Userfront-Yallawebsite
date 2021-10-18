@@ -225,7 +225,7 @@ export default {
                   </div> 
                   <div class="row">
                     <div class="col-md-3">
-                      <b-form-input id="input-name" type="number" placeholder="" v-model="quantity" class="text-center"></b-form-input>
+                      <b-form-input id="input-name" min="1" type="number" placeholder="" v-model="quantity" class="text-center"></b-form-input>
                     </div>
                     <div class="col-md-9">
                         <b-button type="submit" variant="primary" class="btn-block w-large" v-on:click="addToCart">Add To Cart</b-button>
