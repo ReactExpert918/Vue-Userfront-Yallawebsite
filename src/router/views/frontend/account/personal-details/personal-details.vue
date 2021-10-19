@@ -43,8 +43,9 @@ export default {
   },
   computed: {
     isDisable() {
+      window.console.log(this.customer)
       if(this.customer.first_name == "" || this.customer.last_name == "" || this.customer.email == ""
-        || this.customer.password == "" || this.customer.passwordConfirm == "" || this.customer.password != this.customer.passwordConfirm) {
+        || this.password == "" || this.passwordConfirm == "" || this.password != this.passwordConfirm) {
         return true
       }
       else {
@@ -142,7 +143,7 @@ export default {
                 <b-form-input for="text"  v-model="password"></b-form-input>
               </div>
               <div class="col-md-2">
-                <label class="col-form-label">Password Confirmation <span class="red"> *</span></label>
+                <label class="col-form-label">Password Confirmation </label>
                 <b-form-input for="text"  v-model="passwordConfirm"></b-form-input>
               </div>
             </div>
