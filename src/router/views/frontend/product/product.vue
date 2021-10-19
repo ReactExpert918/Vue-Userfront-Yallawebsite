@@ -45,6 +45,16 @@ export default {
   created() {
    
   },
+  computed: {
+    isDisable() {
+      if(this.quantity == 0) {
+        return true
+      }
+      else {
+        return false
+      }
+    }
+  },
   mounted(){
     this.fetchProduct();
     this.fetchReviews();
@@ -98,7 +108,8 @@ export default {
       axios
       .post(`${this.backendURL}/api/v1/carts`, payload, authHeader())
       .then(response => {
-        this.$toast.success(`${response.data.data.id} added to cart!`, {
+        this.data = response.data,
+        this.$toast.success(`Added to cart!`, {
           position: "top-right",
           timeout: 5000,
           closeOnClick: true,
@@ -228,7 +239,7 @@ export default {
                       <b-form-input id="input-name" min="1" type="number" placeholder="" v-model="quantity" class="text-center"></b-form-input>
                     </div>
                     <div class="col-md-9">
-                        <b-button type="submit" variant="primary" class="btn-block w-large" v-on:click="addToCart">Add To Cart</b-button>
+                        <b-button type="submit" :disabled="isDisable" variant="primary" class="btn-block w-large" v-on:click="addToCart">Add To Cart</b-button>
                     </div>
                   </div>
 

@@ -49,7 +49,7 @@ export default {
   },
   computed: {
     isDisable() {
-      if(this.newAddress.first_name == "" || this.newAddress.last_name == "" || this.newAddress.country_id == "" ||
+      if(this.newAddress.first_name == "" || this.newAddress.last_name == "" || this.selectedCountry.id == "" ||
         this.newAddress.street == "" || this.newAddress.city == "" || this.newAddress.postcode == "" ||
         this.newAddress.state == "") {
         return true
