@@ -21,6 +21,7 @@ export default {
     return {
       backendURL: process.env.VUE_APP_BACKEND_URL,
       customer: {},
+      loader: "",
       password: "",
       passwordConfirm: "",
       stateValue: null,
@@ -58,10 +59,12 @@ export default {
   },
   methods: {
     fetchCustomer(){
+      this.loader = true
       axios
       .get(`${this.backendURL}/api/v1/customers`, authHeader())
       .then(response => {
         this.customer = response.data.data;
+        this.loader = false;
       })
       .catch(error=> handleAxiosError(error, this));
     },
@@ -106,7 +109,10 @@ export default {
      <div class="row">
        <div class="col-lg-12">
         <div class="card">
-          <div class="card-body">
+          <div v-if="loader" class="spinner">
+            <div class="loader1"></div>
+          </div>
+          <div  v-else class="card-body">
             <h5>General</h5>
             <div class="row mb-0">
               <!-- <div class="col-md-2">
@@ -183,3 +189,30 @@ export default {
     </div>
   </Layout>
 </template>
+
+<style lang="scss" scoped>
+  .loader1 {
+    border: 46px solid #f3f3f3;
+    border-top: 46px solid #3498db;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>

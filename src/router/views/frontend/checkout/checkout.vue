@@ -25,6 +25,7 @@ export default {
       stepShipping: 'shipping',
       stepBilling: 'billing',
       stepCheckout: 'checkout',
+      cartEditLoader: "",
       paymentData: [],
       paymentMap: {},
       currentPayment:{},
@@ -73,7 +74,7 @@ export default {
     this.step = this.stepShipping;
     this.fetchAllowedCountries();
     this.fetchPaymentMethods();
-    this.fetchCart();
+    // this.fetchCart();
   },
   methods: {
     checkout(){
@@ -266,13 +267,18 @@ export default {
     },
     processBillingInfo(){
       this.step = this.stepCheckout;
+      this.fetchCart();
+    },
+    goToConfirm() {
+      this.processBillingInfo()
     },
     fetchCart(){
+      this.cartEditLoader = true
       axios
       .get(`${this.backendURL}/api/v1/carts`, authHeader())
       .then(response => {
         this.cart = response.data.data;
-
+        this.cartEditLoader = false
       })
       .catch(error=> handleAxiosError(error, this));
     },
@@ -513,7 +519,7 @@ export default {
             </div>
           </b-card-text>
         </b-tab>
-        <b-tab :active="step==stepCheckout" v-on:click="step=stepCheckout">
+        <b-tab :active="step==stepCheckout" v-on:click="goToConfirm">
           <template v-slot:title>
             <i class="bx bx-badge-check d-block check-nav-icon mt-4 mb-2"></i>
             <p class="font-weight-bold mb-4">Confirmation</p>
@@ -522,9 +528,11 @@ export default {
             <div class="card">
               <div class="card-body">
                 <div class="card shadow-none border mb-0">
-                  <div class="card-body">
+                  <div v-if="cartEditLoader" class="spinner">
+                    <div class="loader1"></div>
+                  </div>
+                  <div v-else class="card-body">
                     <h4 class="card-title mb-4">Order Summary</h4>
-
                     <div class="table-responsive">
                       <table class="table table-centered mb-0 table-nowrap">
                         <thead class="thead-light">
@@ -624,3 +632,29 @@ export default {
     </div>
   </Layout>
 </template>
+<style lang="scss" scoped>
+  .loader1 {
+    border: 46px solid #f3f3f3;
+    border-top: 46px solid #3498db;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>

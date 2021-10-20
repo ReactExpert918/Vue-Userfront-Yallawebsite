@@ -16,6 +16,7 @@ export default {
   data() {
     return {
       backendURL: process.env.VUE_APP_BACKEND_URL,
+      loader: "",
       addressesData: {billing_addresses: [] , shipping_addresses: []},
       currentAddress: {},
       stateValue: null,
@@ -75,10 +76,12 @@ export default {
   },
   methods: {
     fetchCustomerAddresses(){
+      this.loader = true
       axios
       .get(`${this.backendURL}/api/v1/customers/address`, authHeader())
       .then(response => {
         this.addressesData = response.data.data;
+        this.loader = false
       })
       .catch(error=> handleAxiosError(error, this));
     },
@@ -148,7 +151,10 @@ export default {
       </div>
       <div class="col-lg-4" v-for="address in addressesData.shipping_addresses" :key="address">
         <div class="card">
-          <div class="card-body p-5">
+          <div v-if="loader" class="spinner">
+            <div class="loader1"></div>
+          </div>
+          <div v-else class="card-body p-5">
             <p>
               <span v-if="address.default_shipping_address === true" class="text-success mr-3"><i class="bx bx-check-double"></i> Default Shipping</span>
             </p>
@@ -273,3 +279,30 @@ export default {
     </b-modal>
   </Layout>
 </template>
+
+<style lang="scss" scoped>
+  .loader1 {
+    border: 46px solid #f3f3f3;
+    border-top: 46px solid #3498db;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 276px;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>

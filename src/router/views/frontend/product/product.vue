@@ -22,6 +22,8 @@ export default {
     return {
       backendURL: process.env.VUE_APP_BACKEND_URL,
       productDetail: {},
+      cartEditLoader: "",
+      cartEditLoader1: "",
       reviews: [],
       maxStars: 5,
       perPage: 5,
@@ -69,6 +71,7 @@ export default {
       expandImg.src = image;
     },
     fetchProduct(){
+      this.cartEditLoader = true
       axios
       .get(`${this.backendURL}/api/v1/products/${this.$route.params.id}`, authHeader())
       .then(response => {
@@ -82,15 +85,17 @@ export default {
         if (this.productDetail.variations.length > 0){
           this.parseVariation();
         }
+        this.cartEditLoader = false;
       })
       .catch(error=> handleAxiosError(error, this));
     },
     fetchReviews(){
+      this.cartEditLoader1 = true
       axios
       .get(`${this.backendURL}/api/v1/products/reviews/${this.$route.params.id}?per_page=${this.perPage}&page=${this.page}`, authHeader())
       .then(response => {
         this.reviews = response.data.data;
-
+        this.cartEditLoader1 = false
       })
       .catch(error=> handleAxiosError(error, this));
     },
@@ -170,7 +175,10 @@ export default {
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
-            <div class="row">
+            <div v-if="cartEditLoader" class="spinner">
+              <div class="loader1"></div>
+            </div>
+            <div v-else class="row">
               <div class="col-xl-6">
                 <div class="product-detai-imgs">
                   <b-tabs pills vertical nav-wrapper-class="col-md-2 col-sm-3 col-4">
@@ -315,8 +323,10 @@ export default {
       <div class="col-lg-12">
         <div>
           <h5 class="mb-3">Recent product :</h5>
-
-          <div class="row">
+          <div v-if="cartEditLoader1" class="spinner1">
+            <div class="loader1"></div>
+          </div>
+          <div v-else class="row">
             <div class="col-xl-4 col-sm-6">
               <div class="card">
                 <div class="card-body">
@@ -433,3 +443,34 @@ export default {
     <!-- end row -->
   </Layout>
 </template>
+<style lang="scss" scoped>
+  .loader1 {
+    border: 46px solid #f3f3f3;
+    border-top: 46px solid #3498db;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+  }
+  .spinner1 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>

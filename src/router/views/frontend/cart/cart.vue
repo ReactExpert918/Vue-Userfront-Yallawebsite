@@ -19,6 +19,7 @@ export default {
   data() {
     return {
       backendURL: process.env.VUE_APP_BACKEND_URL,
+      cartEditLoader: "",
       cart: {total:{} , products:[]},
       title: 'Cart',
       items: [
@@ -38,11 +39,12 @@ export default {
   },
   methods: {
     fetchCart(){
+      this.cartEditLoader = true
       axios
       .get(`${this.backendURL}/api/v1/carts`, authHeader())
       .then(response => {
         this.cart = response.data.data;
-
+        this.cartEditLoader = false
       })
       .catch(error=> handleAxiosError(error, this));
     },
@@ -69,7 +71,10 @@ export default {
     <div class="row">
       <div class="col-xl-8">
         <div class="card">
-          <div class="card-body">
+          <div v-if="cartEditLoader" class="spinner">
+            <div class="loader1"></div>
+          </div>
+          <div v-else class="card-body">
             <div class="table-responsive">
               <table class="table table-centered mb-0 table-nowrap">
                 <thead class="thead-light">
@@ -194,8 +199,10 @@ export default {
         <div class="card">
           <div class="card-body">
             <h4 class="card-title mb-3">Order Summary</h4>
-
-            <div class="table-responsive">
+            <div v-if="cartEditLoader" class="spinner">
+              <div class="loader1"></div>
+            </div>
+            <div v-else class="table-responsive">
               <table class="table mb-0">
                 <tbody>
                   <tr>
@@ -230,3 +237,29 @@ export default {
     <!-- end row -->
   </Layout>
 </template>
+<style lang="scss" scoped>
+  .loader1 {
+    border: 46px solid #f3f3f3;
+    border-top: 46px solid #3498db;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>
