@@ -225,22 +225,33 @@ export default {
                     v-html="productDetail.short_description"
                   >{{productDetail.short_description}}</p>
                   
-
                   <div class="product-color" v-for="spec in productDetail.specifications" :key="spec.id">
                     <h5 class="font-size-15">{{spec.name}} :</h5>
-                    <a
-                      href="javascript: void(0);"
-                      class="active"
-                      v-for="(value, index) in spec.values"
-                      :key="index"
-                      style="padding: 2px;margin: 2px;"
-                    >
-                      <!-- <div class="product-color-item border rounded">
-                        <img :src="item.value" alt class="avatar-md" />
-                      </div> -->
-                      <button v-if="optionSelected(spec.name , value)" class="filter-button" style="background:red" v-on:click="selectOption(spec.name , value)">{{value}}</button>
-                      <button v-else class="filter-button" v-on:click="selectOption(spec.name , value)">{{value}}</button>
-                    </a>
+                    <div v-if="spec.name === 'Size'" style="margin-left: 15px">
+                      <a
+                        href="javascript: void(0);"
+                        class="active"
+                        v-for="(value, index) in spec.values"
+                        :key="index"
+                        style="padding: 2px;margin: 2px;"
+                      >
+                        <button v-if="value == 'Large'"  style="font-size: 20px; background: white; width: 40px; height: 40px; border-radius: 50%" v-on:click="selectOption(spec.name , value)">L</button>
+                        <button v-else-if="value == 'Medium'"  style="font-size: 20px; background: white; width: 40px; height: 40px; border-radius: 50%" v-on:click="selectOption(spec.name , value)">M</button>
+                        <button v-else  style="font-size: 20px; background: white; width: 40px; height: 40px; border-radius: 50%" v-on:click="selectOption(spec.name , value)">S</button>
+                      </a>
+                    </div>
+                    <div v-else style="margin-left: 15px">
+                      <a
+                        href="javascript: void(0);"
+                        class="active"
+                        v-for="(value, index) in spec.values"
+                        :key="index"
+                        style="padding: 2px;margin: 2px;"
+                      >
+                        <button class="filter-button" :style="{'background': value}" v-on:click="selectOption(spec.name , value)"></button>
+                        <!-- <button v-else class="filter-button" v-on:click="selectOption(spec.name , value)"></button> -->
+                      </a>
+                    </div>
                   </div> 
                   <div class="row">
                     <div class="col-md-3">

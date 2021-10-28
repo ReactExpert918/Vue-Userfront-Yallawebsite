@@ -502,7 +502,14 @@ export default {
                 <h6 class="m-0">{{ $t("navbar.dropdown.cart.text") }}</h6>
               </div>
               <div class="col-auto">
-                <a href="#" class="small">{{ $t("navbar.dropdown.cart.subtext") }}</a>
+                <router-link
+                  class="small"
+                  tag="a"
+                  href="javascript: void(0);"
+                  :to="'/cart/'"
+                >
+                  {{ $t("navbar.dropdown.cart.subtext") }}
+                </router-link>
               </div>
             </div>
           </div>
@@ -534,9 +541,14 @@ export default {
             </a>
           </simplebar>
           <div class="p-2 border-top">
-            <a class="btn btn-sm btn-light btn-block text-center bg-primary avatar-title pt-2 pb-2" href="javascript:void(0)">
+            <router-link
+              class="btn btn-sm btn-light btn-block text-center bg-primary avatar-title pt-2 pb-2"
+              tag="a"
+              href="javascript: void(0);"
+              :to="'/checkout/'"
+            >
               {{ $t("navbar.dropdown.cart.button.checkout") }}
-            </a>
+            </router-link>
           </div>
         </b-dropdown>
 

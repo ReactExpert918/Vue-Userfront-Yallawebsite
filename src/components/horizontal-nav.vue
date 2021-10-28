@@ -4,7 +4,11 @@ import axios from 'axios';
 import {handleAxiosError} from "@/helpers/authservice/user.service";
 import {authHeader} from "@/helpers/authservice/auth-header";
 import { menuItems } from "./horizontal-menu";
+import Vue from "vue";
 
+import VueRouter from 'vue-router'
+
+Vue.use(VueRouter)
 export default {
   data() {
     return {
@@ -109,6 +113,7 @@ export default {
                 {{ $t(cat.name) }}
                 <div v-if="hasChildren(cat)" class="arrow-down"></div>
               </router-link>
+              <router-view :key="$route.path"></router-view>
               <div
                 class="dropdown-menu row"
                 aria-labelledby="topnav-dashboard"
@@ -118,8 +123,9 @@ export default {
                   <router-link
                     class="col dropdown-item side-nav-link-ref"
                     v-if="!hasChildren(sub_cat)"
-                    :to="'/category/'+sub_cat.id"
+                    :to="`/category/${sub_cat.id}`"
                   >{{ $t(sub_cat.name) }}</router-link>
+                  <router-view :key="$route.path"></router-view>
                   <div class="dropdown" v-if="hasChildren(sub_cat)">
                     <a class="dropdown-item" href="javascript: void(0);" @click="onMenuClick">
                       {{ $t(sub_cat.name) }}
@@ -129,13 +135,16 @@ export default {
                       <router-link
                         v-for="sub_sub_cat in sub_cat.sub_categories"
                         :key="sub_sub_cat.id"
-                        :to="'/category/'+cat.id"
+                        :to="`http://localhost:8081/category/${cat.id}`"
                         class="dropdown-item side-nav-link-ref"
+                        
                       >{{ $t(sub_sub_cat.name) }}</router-link>
+                      <router-view :key="$route.path"></router-view>
                     </div>
                   </div>
                 </span>
               </div>
+              <router-view :key="$route.path"></router-view>
             </li>
             <li class="nav-item dropdown" v-for="(item, index) of menuItems" :key="index">
               <router-link
