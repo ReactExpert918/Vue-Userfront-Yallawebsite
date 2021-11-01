@@ -107,7 +107,7 @@ function register(customer) {
         }).catch(handleAxiosError);
 }
 
-export function handleAxiosError(error) {
+export function handleAxiosError(error, $this) {
     if (error.response) {
         var data = error.response.data;
         if (error.response.status === 401) {
@@ -116,7 +116,20 @@ export function handleAxiosError(error) {
             location.reload(true);
         }
         const errorMsg = (data && data.message) || error.response.statusText;
-
+        $this.$toast.error("Something Went Wrong!", {
+            position: "top-right",
+            timeout: 5000,
+            closeOnClick: true,
+            pauseOnFocusLoss: true,
+            pauseOnHover: true,
+            draggable: true,
+            draggablePercent: 0.6,
+            showCloseButtonOnHover: false,
+            hideProgressBar: true,
+            closeButton: "button",
+            icon: true,
+            rtl: false
+          })
         return Promise.reject(errorMsg);
     }
 }

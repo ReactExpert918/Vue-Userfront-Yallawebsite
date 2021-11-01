@@ -88,3 +88,19 @@ File: Main Css File
 // @import "custom/rtl/spacing-rtl";
 // @import "custom/rtl/structure-rtl";
 // @import "custom/rtl/text-rtl";
+.red {
+    color: #d8291d;
+    font-size: 16px;
+}
+
+.filter-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+}
+
+.product-color {
+    display: flex;
+    align-items: center;
+}

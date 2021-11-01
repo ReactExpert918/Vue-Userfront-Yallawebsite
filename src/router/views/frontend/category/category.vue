@@ -32,6 +32,7 @@ export default {
         ratingEQ: 0,
         name: "",
       },
+      cartEditLoader: "",
       title: "Category",
       sliderPrice: 800,
       currentPage: 1,
@@ -58,50 +59,44 @@ export default {
   },
   mounted() {
 
-    //** Get data from product api */
-
-    // axios
-    //   .get(`http://localhost:8000/api/products`)
-    //   .then((res) => {
-    //     this.products = res.data.data;
-    //   })
-    //   .catch((err) => {
-    //     return err;
-    //   });
-
     this.fetchCategory();
     this.fetchProducts();
 
   },
   methods: {
     fetchProducts(){
+      this.cartEditLoader = true;
       this.currentCategoryID = this.$route.params.id;
       axios
       .get(`${this.backendURL}/api/v1/products/categories/${this.$route.params.id}?per_page=${this.perPage}&page=${this.currentPage}` , authHeader())
       .then(response => {
         this.products = response.data.data;
         this.totalProducts = response.data.pagination.total;
+        this.cartEditLoader = false;
+        
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchCategory(){
       axios
       .get(`${this.backendURL}/api/v1/categories/${this.$route.params.id}` , authHeader())
       .then(response => (this.category = response.data.data))
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchProductsByCategory(catID){
+      this.cartEditLoader = true;
       this.currentCategoryID = catID;
       axios
       .get(`${this.backendURL}/api/v1/products/categories/${catID}?per_page=${this.perPage}&page=${this.currentPage}` , authHeader())
       .then(response => {
         this.products = response.data.data;
         this.totalProducts = response.data.pagination.total;
+        this.cartEditLoader = false;
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchProductsByFilters(){
-      
+        this.cartEditLoader = true;
         var url = `${this.backendURL}/api/v1/products/categories/${this.currentCategoryID}?per_page=${this.perPage}&page=${this.currentPage}`;
         if (this.filters.priceFrom > 0){
           url += `&price_from=${this.filters.priceFrom}`;
@@ -124,8 +119,9 @@ export default {
         .then(response => {
           this.products = response.data.data;
           this.totalProducts = response.data.pagination.total;
+          this.cartEditLoader = false;
         })
-        .catch(handleAxiosError);
+        .catch(error=> handleAxiosError(error, this));
 
     },
 
@@ -342,72 +338,102 @@ export default {
             </form>
           </div>
         </div>
-        <div class="row">
-          <div
-            v-for="product in products"
-            :key="product.id"
-            class="col-xl-4 col-sm-6"
-          >
-            <div class="card">
-              <div class="card-body">
-                <div class="product-img position-relative">
-                  <div v-if="product.discount" class="avatar-sm product-ribbon">
-                    <span class="avatar-title rounded-circle bg-primary"
-                      >-{{ product.discount }}%</span
-                    >
-                  </div>
-                  <router-link
-                    tag="a"
-                    :to="`/product/${product.id}`"
-                  >
-                    <img
-                      :src="`${product.image}`"
-                      alt
-                      class="img-fluid mx-auto d-block"
-                    />
-                  </router-link>
-                </div>
-                <div class="mt-4 text-center">
-                  <h5 class="mb-3 text-truncate">
+        <div v-if="cartEditLoader" class="row spinner">
+          <div class="loader"></div>
+        </div>
+        <div  v-else>
+          <div class="row">
+            <div
+              v-for="product in products"
+              :key="product.id"
+              class="col-xl-4 col-sm-6"
+            >
+              <div class="card">
+                <div class="card-body">
+                  <div class="product-img position-relative">
+                    <div v-if="product.discount" class="avatar-sm product-ribbon">
+                      <span class="avatar-title rounded-circle bg-primary"
+                        >-{{ product.discount }}%</span
+                      >
+                    </div>
                     <router-link
                       tag="a"
-                      class="text-dark"
                       :to="`/product/${product.id}`"
-                      >{{ product.name }}</router-link
                     >
-                  </h5>
-                  <p class="text-muted">
-                    <i class="bx bx-star text-warning" v-for="i in product.rating" :key="'gold'+i"></i>
-                    <i class="bx bx-star ml-0" v-for="i in notRatedStars(product.rating)" :key="'black'+i"></i>
-                  </p>
-                  <h5 class="my-0">
-                    <span class="text-muted mr-2" v-if="product.price > product.discounted_price">
-                      <del>${{ product.price }}</del>
-                    </span>
-                    <b>${{ product.discounted_price }}</b>
-                  </h5>
+                      <img
+                        :src="`${product.image}`"
+                        alt
+                        class="img-fluid mx-auto d-block"
+                      />
+                    </router-link>
+                  </div>
+                  <div class="mt-4 text-center">
+                    <h5 class="mb-3 text-truncate">
+                      <router-link
+                        tag="a"
+                        class="text-dark"
+                        :to="`/product/${product.id}`"
+                        >{{ product.name }}</router-link
+                      >
+                    </h5>
+                    <p class="text-muted">
+                      <i class="bx bx-star text-warning" v-for="i in product.rating" :key="'gold'+i"></i>
+                      <i class="bx bx-star ml-0" v-for="i in notRatedStars(product.rating)" :key="'black'+i"></i>
+                    </p>
+                    <h5 class="my-0">
+                      <span class="text-muted mr-2" v-if="product.price > product.discounted_price">
+                        <del>${{ product.price }}</del>
+                      </span>
+                      <b>${{ product.discounted_price }}</b>
+                    </h5>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-        <!-- end row -->
+          </div> 
+          <!-- end row -->
 
-        <div class="row">
-          <div class="col-lg-12">
-            <b-pagination
-              v-if="products.length > 0"
-              class="justify-content-center"
-              pills
-              v-model="currentPage"
-              :total-rows="products.length"
-              :per-page="perPage"
-              aria-controls="my-table"
-            ></b-pagination>
+          <div class="row">
+            <div class="col-lg-12">
+              <b-pagination
+                v-if="products.length > 0"
+                class="justify-content-center"
+                pills
+                v-model="currentPage"
+                :total-rows="products.length"
+                :per-page="perPage"
+                aria-controls="my-table"
+              ></b-pagination>
+            </div>
           </div>
         </div>
       </div>
     </div>
-    <!-- end row -->
   </Layout>
 </template>
+<style lang="scss" scoped>
+  .loader {
+    border: 46px solid #f3f3f3;
+    border-top: 46px solid #3498db;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>

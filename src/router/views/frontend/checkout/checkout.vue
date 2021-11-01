@@ -25,6 +25,7 @@ export default {
       stepShipping: 'shipping',
       stepBilling: 'billing',
       stepCheckout: 'checkout',
+      cartEditLoader: "",
       paymentData: [],
       paymentMap: {},
       currentPayment:{},
@@ -57,11 +58,23 @@ export default {
       }
     };
   },
+  computed: {
+    isdisable() {
+      if(this.shipping_address.name == "" || this.shipping_address.email == "" || this.cart.products == "" 
+        || this.shipping_address.phone == "" || this.shipping_address.address == "" || this.selectedCountry == ""
+        || this.shipping_address.state == "" || this.shipping_address.city == "" || this.shipping_address.postcode == "" ) {
+        return true
+      }
+      else {
+        return false
+      }
+    }
+  },
   mounted(){
     this.step = this.stepShipping;
     this.fetchAllowedCountries();
     this.fetchPaymentMethods();
-    this.fetchCart();
+    // this.fetchCart();
   },
   methods: {
     checkout(){
@@ -73,10 +86,24 @@ export default {
       axios
       .post(`${this.backendURL}/api/v1/carts/checkout`,payload, authHeader())
       .then(response => {
-        alert(`Checkout Successful: ${response.data.data.id}`);
+        this.data = response.data,
+        this.$toast.success(`Checkout Successful`, {
+          position: "top-right",
+          timeout: 5000,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          draggablePercent: 0.6,
+          showCloseButtonOnHover: false,
+          hideProgressBar: true,
+          closeButton: "button",
+          icon: true,
+          rtl: false
+        })
         this.purchase(response.data.data.id);
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchAllowedCountries(){
       axios
@@ -84,7 +111,7 @@ export default {
       .then(response => {
         this.countries = response.data.data;
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchPaymentMethods(){
       axios
@@ -105,7 +132,7 @@ export default {
             }
           }          
         })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     // Invluce stripe dynamically
     includeStripe( URL, callback ){
@@ -140,7 +167,20 @@ export default {
         this.stripe.createToken(this.card)
         .then(result => {
           if(result.error){
-            alert("Failed to create stripe card token because: " + result.error.message);
+            this.$toast.error("Failed to create stripe card token because: " + result.error.message, {
+              position: "top-right",
+              timeout: 5000,
+              closeOnClick: true,
+              pauseOnFocusLoss: true,
+              pauseOnHover: true,
+              draggable: true,
+              draggablePercent: 0.6,
+              showCloseButtonOnHover: false,
+              hideProgressBar: true,
+              closeButton: "button",
+              icon: true,
+              rtl: false
+            })
             return;
           }
 
@@ -156,9 +196,22 @@ export default {
           .post(`${this.backendURL}/api/v1/payments/${this.currentPayment.id}/pay` , payload , authHeader())
           .then(response => (
             this.data = response.data,
-            alert("Got paid Successfully")
-            ))
-          .catch(handleAxiosError);
+            this.$toast.success("Got Paid Successfully", {
+              position: "top-right",
+              timeout: 5000,
+              closeOnClick: true,
+              pauseOnFocusLoss: true,
+              pauseOnHover: true,
+              draggable: true,
+              draggablePercent: 0.6,
+              showCloseButtonOnHover: false,
+              hideProgressBar: true,
+              closeButton: "button",
+              icon: true,
+              rtl: false
+            })
+          ))
+          .catch(error=> handleAxiosError(error, this));
         })
     },
     checkStripeCard(name , type , enabled){
@@ -176,9 +229,22 @@ export default {
           .post(`${this.backendURL}/api/v1/payments/${this.currentPayment.id}/pay` , payload , authHeader())
           .then(response => (
             this.data = response.data,
-            alert(`Got Paid Successfully!`)
-            ))
-          .catch(handleAxiosError);
+            this.$toast.success("Got Paid Successfully", {
+              position: "top-right",
+              timeout: 5000,
+              closeOnClick: true,
+              pauseOnFocusLoss: true,
+              pauseOnHover: true,
+              draggable: true,
+              draggablePercent: 0.6,
+              showCloseButtonOnHover: false,
+              hideProgressBar: true,
+              closeButton: "button",
+              icon: true,
+              rtl: false
+            })
+          ))
+          .catch(error=> handleAxiosError(error, this));
     },
     setCurrentPaymentType(checked , type){
       if (checked){
@@ -201,15 +267,20 @@ export default {
     },
     processBillingInfo(){
       this.step = this.stepCheckout;
+      this.fetchCart();
+    },
+    goToConfirm() {
+      this.processBillingInfo()
     },
     fetchCart(){
+      this.cartEditLoader = true
       axios
       .get(`${this.backendURL}/api/v1/carts`, authHeader())
       .then(response => {
         this.cart = response.data.data;
-
+        this.cartEditLoader = false
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
   }
 };
@@ -233,7 +304,7 @@ export default {
                 <form>
                   <b-row class="mb-4">
                     <b-col md="2">
-                      <label for="input-name">Name</label>
+                      <label for="input-name">Name <span class="red"> *</span></label>
                     </b-col>
                     <b-col md="10">
                       <b-form-input id="input-name" placeholder="Enter your name" v-model="shipping_address.name"></b-form-input>
@@ -242,7 +313,7 @@ export default {
 
                   <b-row class="mb-4">
                     <b-col md="2">
-                      <label for="billing-email-address">Email Address</label>
+                      <label for="billing-email-address">Email Address <span class="red"> *</span></label>
                     </b-col>
                     <b-col md="10">
                       <b-form-input id="billing-email-address" placeholder="Enter your email" v-model="shipping_address.email"></b-form-input>
@@ -251,7 +322,7 @@ export default {
 
                   <b-row class="mb-4">
                     <b-col md="2">
-                      <label for="billing-phone">Phone</label>
+                      <label for="billing-phone">Phone <span class="red"> *</span></label>
                     </b-col>
                     <b-col md="10">
                       <b-form-input id="billing-phone" placeholder="Enter your Phone no." v-model="shipping_address.phone"></b-form-input>
@@ -260,7 +331,7 @@ export default {
 
                   <b-row class="mb-4">
                     <b-col md="2">
-                      <label for="billing-address">Address</label>
+                      <label for="billing-address">Address <span class="red"> *</span></label>
                     </b-col>
                     <b-col md="10">
                       <b-form-textarea
@@ -273,7 +344,7 @@ export default {
                   </b-row>
 
                   <div class="form-group row mb-4">
-                    <label class="col-md-2 col-form-label">Country</label>
+                    <label class="col-md-2 col-form-label">Country <span class="red"> *</span></label>
                     <div class="col-md-10">
                       <select class="custom-select custom-select-sm" v-model="selectedCountry">
                         <option v-for="country in countries" v-bind:value="country" :key="country.id">{{country.name}}</option>
@@ -282,19 +353,19 @@ export default {
                   </div>
 
                   <div class="form-group row mb-4">
-                    <label class="col-md-2 col-form-label">State</label>
+                    <label class="col-md-2 col-form-label">State <span class="red"> *</span></label>
                     <div class="col-md-10">
                       <b-form-input id="state" placeholder="Enter your State" v-model="shipping_address.state"></b-form-input>
                     </div>
                   </div>
                   <div class="form-group row mb-4">
-                    <label class="col-md-2 col-form-label">Postcode</label>
+                    <label class="col-md-2 col-form-label">Postcode <span class="red"> *</span></label>
                     <div class="col-md-10">
                       <b-form-input id="postcode" placeholder="Enter your postcode" v-model="shipping_address.postcode"></b-form-input>
                     </div>
                   </div>
                   <div class="form-group row mb-4">
-                    <label class="col-md-2 col-form-label">City</label>
+                    <label class="col-md-2 col-form-label">City <span class="red"> *</span></label>
                     <div class="col-md-10">
                       <b-form-input id="city" placeholder="Enter your City" v-model="shipping_address.city"></b-form-input>
                     </div>
@@ -448,7 +519,7 @@ export default {
             </div>
           </b-card-text>
         </b-tab>
-        <b-tab :active="step==stepCheckout" v-on:click="step=stepCheckout">
+        <b-tab :active="step==stepCheckout" v-on:click="goToConfirm">
           <template v-slot:title>
             <i class="bx bx-badge-check d-block check-nav-icon mt-4 mb-2"></i>
             <p class="font-weight-bold mb-4">Confirmation</p>
@@ -457,9 +528,11 @@ export default {
             <div class="card">
               <div class="card-body">
                 <div class="card shadow-none border mb-0">
-                  <div class="card-body">
+                  <div v-if="cartEditLoader" class="spinner">
+                    <div class="loader1"></div>
+                  </div>
+                  <div v-else class="card-body">
                     <h4 class="card-title mb-4">Order Summary</h4>
-
                     <div class="table-responsive">
                       <table class="table table-centered mb-0 table-nowrap">
                         <thead class="thead-light">
@@ -546,9 +619,9 @@ export default {
               <!-- end col -->
               <div class="col-sm-6">
                 <div class="text-sm-right">
-                  <div  class="btn btn-success" v-on:click="checkout">
+                  <button :disabled="isdisable" class="btn btn-success" v-on:click="checkout">
                     <i class="mdi mdi-truck-fast mr-1"></i> Place Order
-                  </div>
+                  </button>
                 </div>
               </div>
               <!-- end col -->
@@ -559,3 +632,29 @@ export default {
     </div>
   </Layout>
 </template>
+<style lang="scss" scoped>
+  .loader1 {
+    border: 46px solid #f3f3f3;
+    border-top: 46px solid #3498db;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>

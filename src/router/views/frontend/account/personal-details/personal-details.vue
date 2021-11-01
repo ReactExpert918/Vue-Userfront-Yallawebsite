@@ -21,6 +21,7 @@ export default {
     return {
       backendURL: process.env.VUE_APP_BACKEND_URL,
       customer: {},
+      loader: "",
       password: "",
       passwordConfirm: "",
       stateValue: null,
@@ -41,17 +42,31 @@ export default {
       ],
     };
   },
+  computed: {
+    isDisable() {
+      window.console.log(this.customer)
+      if(this.customer.first_name == "" || this.customer.last_name == "" || this.customer.email == ""
+        || this.password == "" || this.passwordConfirm == "" || this.password != this.passwordConfirm) {
+        return true
+      }
+      else {
+        return false
+      }
+    }
+  },
   mounted(){
     this.fetchCustomer();
   },
   methods: {
     fetchCustomer(){
+      this.loader = true
       axios
       .get(`${this.backendURL}/api/v1/customers`, authHeader())
       .then(response => {
         this.customer = response.data.data;
+        this.loader = false;
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     updateCustomer(){
 
@@ -67,8 +82,22 @@ export default {
       .put(`${this.backendURL}/api/v1/customers` , payload , authHeader())
       .then(response => (
         this.data = response.data,
-        alert("Customers Updated Successfully!")))
-      .catch(handleAxiosError);
+        this.$toast.success("Customers Updated Successfully!", {
+          position: "top-right",
+          timeout: 5000,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          draggablePercent: 0.6,
+          showCloseButtonOnHover: false,
+          hideProgressBar: true,
+          closeButton: "button",
+          icon: true,
+          rtl: false
+        })
+        ))
+      .catch(error=> handleAxiosError(error, this));
     }
   }
 };
@@ -80,7 +109,10 @@ export default {
      <div class="row">
        <div class="col-lg-12">
         <div class="card">
-          <div class="card-body">
+          <div v-if="loader" class="spinner">
+            <div class="loader1"></div>
+          </div>
+          <div  v-else class="card-body">
             <h5>General</h5>
             <div class="row mb-0">
               <!-- <div class="col-md-2">
@@ -94,15 +126,15 @@ export default {
                 </select>
               </div> -->
               <div class="col-md-2">
-                <label class="col-form-label">First Name</label>
+                <label class="col-form-label">First Name <span class="red"> *</span></label>
                 <b-form-input for="text"  v-model="customer.first_name"></b-form-input>
               </div>
               <div class="col-md-2">
-                <label class="col-form-label">Last Name</label>
+                <label class="col-form-label">Last Name <span class="red"> *</span></label>
                 <b-form-input for="text"  v-model="customer.last_name"></b-form-input>
               </div>
               <div class="col-md-3">
-                <label class="col-form-label">Email</label>
+                <label class="col-form-label">Email <span class="red"> *</span></label>
                 <b-form-input for="text" v-model="customer.email"></b-form-input>
               </div>
               <!-- <div class="col-md-3">
@@ -113,11 +145,11 @@ export default {
             <h5 class="mt-3">Security</h5>
             <div class="row mb-0">
               <div class="col-md-2">
-                <label class="col-form-label">New Password</label>
+                <label class="col-form-label">New Password <span class="red"> *</span></label>
                 <b-form-input for="text"  v-model="password"></b-form-input>
               </div>
               <div class="col-md-2">
-                <label class="col-form-label">Password Confirmation</label>
+                <label class="col-form-label">Password Confirmation </label>
                 <b-form-input for="text"  v-model="passwordConfirm"></b-form-input>
               </div>
             </div>
@@ -150,10 +182,37 @@ export default {
                 <b-form-input for="text" value=""></b-form-input>
               </div>
             </div> -->
-            <b-button class="mt-3" variant="primary" v-on:click="updateCustomer">Save</b-button>
+            <b-button class="mt-3" :disabled="isDisable" variant="primary" v-on:click="updateCustomer">Save</b-button>
           </div>
         </div>
       </div>
     </div>
   </Layout>
 </template>
+
+<style lang="scss" scoped>
+  .loader1 {
+    border: 46px solid #f3f3f3;
+    border-top: 46px solid #3498db;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>

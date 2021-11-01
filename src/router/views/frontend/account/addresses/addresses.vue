@@ -16,6 +16,7 @@ export default {
   data() {
     return {
       backendURL: process.env.VUE_APP_BACKEND_URL,
+      loader: "",
       addressesData: {billing_addresses: [] , shipping_addresses: []},
       currentAddress: {},
       stateValue: null,
@@ -47,18 +48,42 @@ export default {
       ]
     };
   },
+  computed: {
+    isDisable() {
+      if(this.newAddress.first_name == "" || this.newAddress.last_name == "" || this.selectedCountry.id == "" ||
+        this.newAddress.street == "" || this.newAddress.city == "" || this.newAddress.postcode == "" ||
+        this.newAddress.state == "") {
+        return true
+      }
+      else {
+        return false
+      }
+    },
+    isUpdateDisable() {
+      if(this.currentAddress.first_name == "" || this.currentAddress.last_name == "" || this.currentAddress.country_id == "" ||
+        this.currentAddress.street == "" || this.currentAddress.city == "" || this.currentAddress.postcode == "" ||
+        this.currentAddress.state == "") {
+        return true
+      }
+      else {
+        return false
+      }
+    }
+  },
   mounted(){
     this.fetchCustomerAddresses();
     this.fetchAllowedCountries();
   },
   methods: {
     fetchCustomerAddresses(){
+      this.loader = true
       axios
       .get(`${this.backendURL}/api/v1/customers/address`, authHeader())
       .then(response => {
         this.addressesData = response.data.data;
+        this.loader = false
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     updateCustomerAddresses(){
 
@@ -70,9 +95,22 @@ export default {
       .put(`${this.backendURL}/api/v1/customers`,payload ,  authHeader())
       .then(response => {
         this.data = response.data;
-        alert("Address Updated Successfully!");
+        this.$toast.success("Address Updated Successfully!", {
+          position: "top-right",
+          timeout: 5000,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          draggablePercent: 0.6,
+          showCloseButtonOnHover: false,
+          hideProgressBar: true,
+          closeButton: "button",
+          icon: true,
+          rtl: false
+        })
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchAllowedCountries(){
       axios
@@ -80,7 +118,7 @@ export default {
       .then(response => {
         this.countries = response.data.data;
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     addNewAddress(){
       if (this.selectedCountry.id != ""){
@@ -113,7 +151,10 @@ export default {
       </div>
       <div class="col-lg-4" v-for="address in addressesData.shipping_addresses" :key="address">
         <div class="card">
-          <div class="card-body p-5">
+          <div v-if="loader" class="spinner">
+            <div class="loader1"></div>
+          </div>
+          <div v-else class="card-body p-5">
             <p>
               <span v-if="address.default_shipping_address === true" class="text-success mr-3"><i class="bx bx-check-double"></i> Default Shipping</span>
             </p>
@@ -133,15 +174,15 @@ export default {
     <b-modal id="modal-add-address" scrollable title="Add Address" title-class="font-18" hide-footer>
       <div class="row">
         <div class="col-sm-6">
-          <label class="mt-3">First Name</label>
+          <label class="mt-3">First Name <span class="red"> *</span></label>
           <b-form-input for="text" v-model="newAddress.first_name"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Last Name</label>
+          <label class="mt-3">Last Name <span class="red"> *</span></label>
           <b-form-input for="text" v-model="newAddress.last_name"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Address Line</label>
+          <label class="mt-3">Address Line <span class="red"> *</span></label>
           <b-form-input for="text" v-model="newAddress.street"></b-form-input>
         </div>
         <!-- <div class="col-sm-6">
@@ -149,21 +190,21 @@ export default {
           <b-form-input for="text" value=""></b-form-input>
         </div> -->
         <div class="col-sm-6">
-          <label class="mt-3">Country</label>
+          <label class="mt-3">Country <span class="red"> *</span></label>
           <select class="custom-select custom-select-sm" v-model="selectedCountry">
             <option v-for="country in countries" v-bind:value="country" :key="country.id">{{country.name}}</option>
           </select>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">State</label>
+          <label class="mt-3">State <span class="red"> *</span></label>
           <b-form-input for="text" v-model="newAddress.state"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">City</label>
+          <label class="mt-3">City <span class="red"> *</span></label>
           <b-form-input for="text" v-model="newAddress.city"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Postcode</label>
+          <label class="mt-3">Postcode <span class="red"> *</span></label>
           <b-form-input for="text" v-model="newAddress.postcode"></b-form-input>
         </div>
         <!-- <div class="col-sm-6">
@@ -177,7 +218,7 @@ export default {
       </div>
       <br>
       <div class="text-sm-right">
-        <b-button variant="primary" v-on:click="addNewAddress">
+        <b-button :disabled="isDisable" variant="primary" v-on:click="addNewAddress">
             <i class="bx bx-check-double font-size-16 align-middle mr-2"></i>
             Save
         </b-button>
@@ -186,15 +227,15 @@ export default {
     <b-modal id="modal-edit-address" scrollable title="Edit Address" title-class="font-18" hide-footer>
       <div class="row">
         <div class="col-sm-6">
-          <label class="mt-3">First Name</label>
+          <label class="mt-3">First Name <span class="red"> *</span></label>
           <b-form-input for="text" v-model="currentAddress.first_name"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Last Name</label>
+          <label class="mt-3">Last Name <span class="red"> *</span></label>
           <b-form-input for="text" v-model="currentAddress.last_name"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Address Line</label>
+          <label class="mt-3">Address Line <span class="red"> *</span></label>
           <b-form-input for="text" v-model="currentAddress.street"></b-form-input>
         </div>
         <!-- <div class="col-sm-6">
@@ -202,21 +243,21 @@ export default {
           <b-form-input for="text" value=""></b-form-input>
         </div> -->
         <div class="col-sm-6">
-          <label class="mt-3">City</label>
+          <label class="mt-3">City <span class="red"> *</span></label>
           <b-form-input for="text" v-model="currentAddress.city"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Country</label>
+          <label class="mt-3">Country <span class="red"> *</span></label>
           <select class="custom-select custom-select-sm" v-model="currentAddress.country_id">
             <option v-for="country in countries" v-bind:value="country.id" :key="country.id">{{country.name}}</option>
           </select>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">State</label>
+          <label class="mt-3">State <span class="red"> *</span></label>
           <b-form-input for="text" v-model="currentAddress.state"></b-form-input>
         </div>
         <div class="col-sm-6">
-          <label class="mt-3">Postcode</label>
+          <label class="mt-3">Postcode <span class="red"> *</span></label>
           <b-form-input for="text" v-model="currentAddress.postcode"></b-form-input>
         </div>
         <!-- <div class="col-sm-6">
@@ -230,7 +271,7 @@ export default {
       </div>
       <br>
       <div class="text-sm-right">
-        <b-button variant="primary" v-on:click="updateCustomerAddresses">
+        <b-button :disabled="isUpdateDisable" variant="primary" v-on:click="updateCustomerAddresses">
             <i class="bx bx-check-double font-size-16 align-middle mr-2"></i>
             Save
         </b-button>
@@ -238,3 +279,30 @@ export default {
     </b-modal>
   </Layout>
 </template>
+
+<style lang="scss" scoped>
+  .loader1 {
+    border: 46px solid #f3f3f3;
+    border-top: 46px solid #3498db;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 276px;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>

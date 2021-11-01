@@ -22,6 +22,8 @@ export default {
     return {
       backendURL: process.env.VUE_APP_BACKEND_URL,
       productDetail: {},
+      cartEditLoader: "",
+      cartEditLoader1: "",
       reviews: [],
       maxStars: 5,
       perPage: 5,
@@ -45,6 +47,16 @@ export default {
   created() {
    
   },
+  computed: {
+    isDisable() {
+      if(this.quantity == 0) {
+        return true
+      }
+      else {
+        return false
+      }
+    }
+  },
   mounted(){
     this.fetchProduct();
     this.fetchReviews();
@@ -59,6 +71,7 @@ export default {
       expandImg.src = image;
     },
     fetchProduct(){
+      this.cartEditLoader = true
       axios
       .get(`${this.backendURL}/api/v1/products/${this.$route.params.id}`, authHeader())
       .then(response => {
@@ -72,17 +85,19 @@ export default {
         if (this.productDetail.variations.length > 0){
           this.parseVariation();
         }
+        this.cartEditLoader = false;
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     fetchReviews(){
+      this.cartEditLoader1 = true
       axios
       .get(`${this.backendURL}/api/v1/products/reviews/${this.$route.params.id}?per_page=${this.perPage}&page=${this.page}`, authHeader())
       .then(response => {
         this.reviews = response.data.data;
-
+        this.cartEditLoader1 = false
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     addToCart(){
       var variation_id = "";
@@ -98,10 +113,23 @@ export default {
       axios
       .post(`${this.backendURL}/api/v1/carts`, payload, authHeader())
       .then(response => {
-        alert(`${response.data.data.id} added to cart!`);
-
+        this.data = response.data,
+        this.$toast.success(`Added to cart!`, {
+          position: "top-right",
+          timeout: 5000,
+          closeOnClick: true,
+          pauseOnFocusLoss: true,
+          pauseOnHover: true,
+          draggable: true,
+          draggablePercent: 0.6,
+          showCloseButtonOnHover: false,
+          hideProgressBar: true,
+          closeButton: "button",
+          icon: true,
+          rtl: false
+        })
       })
-      .catch(handleAxiosError);
+      .catch(error=> handleAxiosError(error, this));
     },
     notRatedStars(rating){
       if (rating > this.maxStars){
@@ -147,7 +175,10 @@ export default {
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
-            <div class="row">
+            <div v-if="cartEditLoader" class="spinner">
+              <div class="loader1"></div>
+            </div>
+            <div v-else class="row">
               <div class="col-xl-6">
                 <div class="product-detai-imgs">
                   <b-tabs pills vertical nav-wrapper-class="col-md-2 col-sm-3 col-4">
@@ -194,29 +225,40 @@ export default {
                     v-html="productDetail.short_description"
                   >{{productDetail.short_description}}</p>
                   
-
                   <div class="product-color" v-for="spec in productDetail.specifications" :key="spec.id">
                     <h5 class="font-size-15">{{spec.name}} :</h5>
-                    <a
-                      href="javascript: void(0);"
-                      class="active"
-                      v-for="(value, index) in spec.values"
-                      :key="index"
-                      style="padding: 2px;margin: 2px;"
-                    >
-                      <!-- <div class="product-color-item border rounded">
-                        <img :src="item.value" alt class="avatar-md" />
-                      </div> -->
-                      <button v-if="optionSelected(spec.name , value)" class="filter-button" style="background:red" v-on:click="selectOption(spec.name , value)">{{value}}</button>
-                      <button v-else class="filter-button" v-on:click="selectOption(spec.name , value)">{{value}}</button>
-                    </a>
+                    <div v-if="spec.name === 'Size'" style="margin-left: 15px">
+                      <a
+                        href="javascript: void(0);"
+                        class="active"
+                        v-for="(value, index) in spec.values"
+                        :key="index"
+                        style="padding: 2px;margin: 2px;"
+                      >
+                        <button v-if="value == 'Large'"  style="font-size: 20px; background: white; width: 40px; height: 40px; border-radius: 50%" v-on:click="selectOption(spec.name , value)">L</button>
+                        <button v-else-if="value == 'Medium'"  style="font-size: 20px; background: white; width: 40px; height: 40px; border-radius: 50%" v-on:click="selectOption(spec.name , value)">M</button>
+                        <button v-else  style="font-size: 20px; background: white; width: 40px; height: 40px; border-radius: 50%" v-on:click="selectOption(spec.name , value)">S</button>
+                      </a>
+                    </div>
+                    <div v-else style="margin-left: 15px">
+                      <a
+                        href="javascript: void(0);"
+                        class="active"
+                        v-for="(value, index) in spec.values"
+                        :key="index"
+                        style="padding: 2px;margin: 2px;"
+                      >
+                        <button class="filter-button" :style="{'background': value}" v-on:click="selectOption(spec.name , value)"></button>
+                        <!-- <button v-else class="filter-button" v-on:click="selectOption(spec.name , value)"></button> -->
+                      </a>
+                    </div>
                   </div> 
                   <div class="row">
                     <div class="col-md-3">
-                      <b-form-input id="input-name" type="number" placeholder="" v-model="quantity" class="text-center"></b-form-input>
+                      <b-form-input id="input-name" min="1" type="number" placeholder="" v-model="quantity" class="text-center"></b-form-input>
                     </div>
                     <div class="col-md-9">
-                        <b-button type="submit" variant="primary" class="btn-block w-large" v-on:click="addToCart">Add To Cart</b-button>
+                        <b-button type="submit" :disabled="isDisable" variant="primary" class="btn-block w-large" v-on:click="addToCart">Add To Cart</b-button>
                     </div>
                   </div>
 
@@ -292,8 +334,10 @@ export default {
       <div class="col-lg-12">
         <div>
           <h5 class="mb-3">Recent product :</h5>
-
-          <div class="row">
+          <div v-if="cartEditLoader1" class="spinner1">
+            <div class="loader1"></div>
+          </div>
+          <div v-else class="row">
             <div class="col-xl-4 col-sm-6">
               <div class="card">
                 <div class="card-body">
@@ -410,3 +454,34 @@ export default {
     <!-- end row -->
   </Layout>
 </template>
+<style lang="scss" scoped>
+  .loader1 {
+    border: 46px solid #f3f3f3;
+    border-top: 46px solid #3498db;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+  }
+  .spinner1 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>
